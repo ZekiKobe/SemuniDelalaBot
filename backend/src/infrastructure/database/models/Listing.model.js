@@ -21,7 +21,7 @@ const locationSchema = new mongoose.Schema(
     latitude: { type: Number },
     longitude: { type: Number },
     geo: {
-      type: { type: String, enum: ['Point'], default: 'Point' },
+      type: { type: String, enum: ['Point'] },
       coordinates: { type: [Number] },
     },
   },
@@ -100,11 +100,17 @@ listingSchema.index({ 'location.geo': '2dsphere' });
 listingSchema.index({ title: 'text', description: 'text', searchTags: 'text' });
 
 listingSchema.pre('save', function setDerivedFields(next) {
-  if (this.location?.latitude && this.location?.longitude) {
+  const hasValidCoordinates =
+    Number.isFinite(this.location?.latitude) &&
+    Number.isFinite(this.location?.longitude);
+
+  if (hasValidCoordinates) {
     this.location.geo = {
       type: 'Point',
       coordinates: [this.location.longitude, this.location.latitude],
     };
+  } else if (this.location?.geo) {
+    this.location.geo = undefined;
   }
 
   if (this.isModified('title') || this.isModified('location') || this.isModified('listingType')) {

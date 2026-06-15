@@ -10,6 +10,8 @@ const productPersistenceHandlers = require('./handlers/productPersistenceHandler
 const adminHandlers = require('./handlers/adminHandlers');
 const publishingHandlers = require('./handlers/publishingHandlers');
 
+const DEFAULT_LANGUAGE = 'am';
+
 class TelegramBotService {
   constructor() {
     this.bot = null;
@@ -40,13 +42,13 @@ class TelegramBotService {
   setupCommandHandlers() {
     this.bot.onText(/\/start/, (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
 
       const keyboard = {
         inline_keyboard: [
           [
-            { text: '🇬🇧 English', callback_data: 'lang_en' },
             { text: '🇪🇹 አማርኛ', callback_data: 'lang_am' },
+            { text: '🇬🇧 English', callback_data: 'lang_en' },
             { text: '🇪🇹 Afaan Oromoo', callback_data: 'lang_or' }
           ]
         ]
@@ -60,7 +62,7 @@ class TelegramBotService {
 
     this.bot.onText(/\/help/, (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
       
       const keyboard = {
         inline_keyboard: [
@@ -77,7 +79,7 @@ class TelegramBotService {
 
     this.bot.onText(/\/post/, (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
       if (!this.userLanguages.has(chatId)) {
         this.bot.sendMessage(chatId, 'Please select a language first using /start');
         return;
@@ -87,13 +89,13 @@ class TelegramBotService {
 
     this.bot.onText(/\/cancel/, (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
       this.cancelSubmission(chatId, lang);
     });
 
     this.bot.onText(/\/mylistings/, async (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
       await this.showUserListings(chatId, msg.from, lang);
     });
 
@@ -101,7 +103,7 @@ class TelegramBotService {
     this.bot.on('callback_query', async (query) => {
       const chatId = query?.message?.chat?.id;
       const data = typeof query.data === 'string' ? query.data : '';
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
 
       if (!chatId) {
         logger.error('Telegram callback query missing chat id', { query });
@@ -311,7 +313,7 @@ class TelegramBotService {
       // Log chat ID for admin setup
       console.log('Chat ID:', chatId);
 
-      const lang = this.userLanguages.get(chatId) || 'en';
+      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
       const state = this.userStates.get(chatId);
 
       if (msg.text && typeof msg.text === 'string' && !msg.text.startsWith('/')) {
