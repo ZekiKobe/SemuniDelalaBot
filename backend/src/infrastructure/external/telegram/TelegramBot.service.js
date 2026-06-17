@@ -19,7 +19,6 @@ class TelegramBotService {
     this.userStates = new Map(); // Store conversation state per user
     this.tempPropertyData = new Map(); // Store temporary property data
     this.userLanguages = new Map(); // Store user language preference
-    
     this.messages = messages;
   }
 
