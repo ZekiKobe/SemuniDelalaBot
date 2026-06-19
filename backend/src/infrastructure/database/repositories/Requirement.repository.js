@@ -8,7 +8,7 @@ class RequirementRepository {
 
   async findById(id) {
     return Requirement.findById(id)
-      .populate('createdBy', 'fullName phoneNumber telegramUsername telegramChatId')
+      .populate('createdBy', 'fullName phoneNumber telegramUsername telegramChatId preferredLanguage')
       .populate('categoryId', 'name slug')
       .populate('subcategoryId', 'name slug');
   }

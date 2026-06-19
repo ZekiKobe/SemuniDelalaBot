@@ -16,7 +16,7 @@ const notificationService = require('../../../../application/services/Notificati
 const channelPublisher = require('../channelPublisher');
 const imageStorage = require('../telegramImageStorage');
 const imageProcessor = require('../../../storage/ImageProcessor.service');
-const { formatListingMessage } = require('../messageFormatter');
+const { formatListingMessage, formatMarketplaceListingMessage, formatRequirementMessage } = require('../messageFormatter');
 const {
   UserRole,
   PropertyStatus,
@@ -28,13 +28,13 @@ const {
 } = require('../../../../domain/enums');
 
 module.exports = {
-  async postListingToChannel(property) {
+  async postListingToChannel(property, lang = 'en') {
     if (!this.isReady() || !config.telegram.channelId) {
       logger.warn('Telegram not configured — skipping channel post');
       return null;
     }
 
-    const message = formatListingMessage(property);
+    const message = formatListingMessage(property, lang);
     const imagePaths = (property.images || [])
       .sort((a, b) => a.order - b.order)
       .map((img) => path.join(process.cwd(), img.url.replace(/^\//, '')))
@@ -84,6 +84,76 @@ module.exports = {
 
       await TelegramPost.create({
         propertyId: property._id,
+        channelId: config.telegram.channelId,
+        postType: TelegramPostType.LISTING,
+        status: TelegramPostStatus.FAILED,
+        content: message,
+        error: error.message,
+      });
+
+      throw error;
+    }
+  },
+
+  async postMarketplaceListingToChannel(listing, lang = 'en') {
+    if (!this.isReady() || !config.telegram.channelId) {
+      logger.warn('Telegram not configured - skipping marketplace listing channel post');
+      return null;
+    }
+
+    const message = formatMarketplaceListingMessage(listing, lang);
+    const imagePaths = (listing.images || [])
+      .sort((a, b) => a.order - b.order)
+      .map((img) => path.join(process.cwd(), img.url.replace(/^\//, '')))
+      .filter(Boolean);
+
+    try {
+      let result;
+
+      if (imagePaths.length > 0) {
+        const mediaGroup = imagePaths.slice(0, 10).map((imgPath, index) => ({
+          type: 'photo',
+          media: imgPath,
+          ...(index === 0 && { caption: message, parse_mode: 'HTML' }),
+        }));
+
+        result = await this.bot.sendMediaGroup(config.telegram.channelId, mediaGroup);
+
+        if (imagePaths.length > 10) {
+          const secondGroup = imagePaths.slice(10, 20).map((imgPath) => ({
+            type: 'photo',
+            media: imgPath,
+          }));
+          await this.bot.sendMediaGroup(config.telegram.channelId, secondGroup);
+        }
+      } else {
+        result = await this.bot.sendMessage(config.telegram.channelId, message, {
+          parse_mode: 'HTML',
+        });
+        result = [result];
+      }
+
+      const post = await TelegramPost.create({
+        listingId: listing._id,
+        channelId: config.telegram.channelId,
+        messageId: result[0]?.message_id,
+        postType: TelegramPostType.LISTING,
+        status: TelegramPostStatus.SENT,
+        content: message,
+        imageMessageIds: result.map((r) => r.message_id),
+        postedAt: new Date(),
+      });
+
+      logger.info('Marketplace listing posted to Telegram', { listingId: listing._id });
+      return post;
+    } catch (error) {
+      logger.error('Failed to post marketplace listing to Telegram', {
+        error: error.message,
+        listingId: listing._id,
+      });
+
+      await TelegramPost.create({
+        listingId: listing._id,
         channelId: config.telegram.channelId,
         postType: TelegramPostType.LISTING,
         status: TelegramPostStatus.FAILED,
@@ -170,13 +240,13 @@ module.exports = {
     });
   },
 
-  async postRequirementToChannel(requirement) {
+  async postRequirementToChannel(requirement, lang = requirement.preferredLanguage || requirement.createdBy?.preferredLanguage || 'en') {
     if (!this.isReady() || !config.telegram.channelId) {
       logger.warn('Telegram not configured — skipping requirement channel post');
       return null;
     }
 
-    const message = this.formatRequirementMessage(requirement);
+    const message = formatRequirementMessage(requirement, lang);
     const imagePaths = (requirement.images || [])
       .sort((a, b) => a.order - b.order)
       .map((img) => path.join(process.cwd(), img.url.replace(/^\//, '')))

@@ -27,6 +27,8 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
+const productMessages = (messages, lang) => messages[lang]?.product || messages.en.product;
+
 module.exports = {
   async showProductSummary(chatId, lang) {
     const state = this.userStates.get(chatId);
@@ -34,22 +36,23 @@ module.exports = {
     if (!state || !data?.marketplaceListing) return;
 
     const product = data.product;
+    const msgs = productMessages(this.messages, lang);
     const imageCount = Array.isArray(data.images) ? data.images.length : 0;
     const summary = `
-Product Listing Summary
+${msgs.summaryTitle}
 
-Title: ${product.title}
-Description: ${product.description.substring(0, 120)}${product.description.length > 120 ? '...' : ''}
-Price: ${product.price} ETB
-Location: ${product.location.city}${product.location.subCity ? `, ${product.location.subCity}` : ''}
-Brand: ${product.brand || 'N/A'}
-Model: ${product.model || 'N/A'}
-Year: ${product.year || 'N/A'}
-Condition: ${product.condition}
-Images: ${imageCount} uploaded
-Payment Proof: ${data.paymentProof ? 'Uploaded' : 'Not uploaded'}
+${msgs.title}: ${product.title}
+${msgs.description}: ${product.description.substring(0, 120)}${product.description.length > 120 ? '...' : ''}
+${msgs.price}: ${product.price} ETB
+${msgs.location}: ${product.location.city}${product.location.subCity ? `, ${product.location.subCity}` : ''}
+${msgs.brand}: ${product.brand || msgs.notAvailable}
+${msgs.model}: ${product.model || msgs.notAvailable}
+${msgs.year}: ${product.year || msgs.notAvailable}
+${msgs.condition}: ${product.condition}
+${msgs.images}: ${imageCount} ${msgs.uploadedImages}
+${msgs.paymentProof}: ${data.paymentProof ? msgs.uploaded : msgs.notUploaded}
 
-Submit this product for admin approval?
+${msgs.submitQuestion}
     `;
 
     const keyboard = {
@@ -118,6 +121,7 @@ Submit this product for admin approval?
         userId: user._id,
         paymentProof: productData.paymentProof,
         chatId: chatId,
+        lang,
       });
 
       if (config.telegram.adminChatId) {
@@ -148,10 +152,10 @@ Listing ID: ${listing._id}
 
       this.userStates.delete(chatId);
       this.tempPropertyData.delete(chatId);
-      this.bot.sendMessage(chatId, 'Your product listing payment proof was submitted and is pending admin approval.');
+      this.bot.sendMessage(chatId, productMessages(this.messages, lang).submitted);
     } catch (error) {
       logger.error('Failed to submit product listing', { error: error.message });
-      this.bot.sendMessage(chatId, 'Failed to submit product listing. Please try again or contact support.');
+      this.bot.sendMessage(chatId, productMessages(this.messages, lang).failedSubmit);
     }
   }
 };

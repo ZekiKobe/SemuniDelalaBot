@@ -1,6 +1,7 @@
 const Listing = require('../models/Listing.model');
 const ListingView = require('../models/ListingView.model');
 const MarketplaceFavorite = require('../models/MarketplaceFavorite.model');
+const { ListingStatus } = require('../../../domain/enums');
 
 class ListingRepository {
   create(data) {
@@ -43,6 +44,17 @@ class ListingRepository {
     ]);
 
     return { data, total };
+  }
+
+  findApproved(filter = {}, sort = { createdAt: -1 }, limit = 0) {
+    const query = Listing.find({ status: ListingStatus.APPROVED, ...filter })
+      .populate('categoryId', 'name slug')
+      .populate('subcategoryId', 'name slug')
+      .populate('sellerId', 'fullName username phone')
+      .sort(sort);
+
+    if (Number(limit) > 0) query.limit(Number(limit));
+    return query;
   }
 
   countByStatus(status) {

@@ -16,7 +16,7 @@ const notificationService = require('../../../../application/services/Notificati
 const channelPublisher = require('../channelPublisher');
 const imageStorage = require('../telegramImageStorage');
 const imageProcessor = require('../../../storage/ImageProcessor.service');
-const { formatListingMessage } = require('../messageFormatter');
+const { formatListingMessage, formatRequirementMessage: formatSharedRequirementMessage } = require('../messageFormatter');
 const {
   UserRole,
   PropertyStatus,
@@ -26,6 +26,8 @@ const {
   TelegramPostStatus,
   TelegramPostType,
 } = require('../../../../domain/enums');
+
+const normalizePreferredLanguage = (lang = 'en') => (lang === 'or' ? 'om' : lang);
 
 module.exports = {
   getRequirementTypeLabel(listingType) {
@@ -127,7 +129,8 @@ module.exports = {
             [{ text: msgs.skipImages, callback_data: 'images_skip' }]
           ]
         };
-        this.bot.sendMessage(chatId, msgs.step8_images, { reply_markup: imageKeyboard });
+        const imagePrompt = await this.bot.sendMessage(chatId, msgs.step8_images, { reply_markup: imageKeyboard });
+        requirementData.imagePromptMessageId = imagePrompt.message_id;
         break;
 
       default:
@@ -145,6 +148,8 @@ module.exports = {
           phoneNumber: data.requirement.contactPhone,
           fullName: 'Telegram User',
           telegramUsername: 'unknown',
+          telegramChatId: String(chatId),
+          preferredLanguage: normalizePreferredLanguage(lang),
           role: 'user',
           password: Math.random().toString(36).slice(-8),
         });
@@ -159,6 +164,7 @@ module.exports = {
         requirement: data.requirement,
         userId: user._id,
         requirementId,
+        preferredLanguage: normalizePreferredLanguage(lang),
         images: data.images || [],
       });
 
@@ -167,6 +173,7 @@ module.exports = {
         requirement: data.requirement,
         userId: user._id,
         chatId: chatId,
+        preferredLanguage: normalizePreferredLanguage(lang),
       });
 
       // Set user state to expect payment proof
@@ -225,9 +232,10 @@ ${data.paymentProof ? msgs.afterPaymentProof : msgs.afterPayment}
 ${msgs.downloadApp}
     `;
 
+    const appButton = this.getAppInlineButton(msgs.downloadAppButton);
     const keyboard = {
       inline_keyboard: [
-        [{ text: msgs.downloadAppButton, url: 'https://your-app-url.com' }],
+        ...(appButton ? [[appButton]] : []),
         ...(data.paymentProof ? [[
           { text: msgs.submit, callback_data: 'submit_later' },
           { text: msgs.cancel, callback_data: 'cancel_submission' }
@@ -255,6 +263,8 @@ ${msgs.downloadApp}
           phoneNumber: data.requirement.contactPhone,
           fullName: 'Telegram User',
           telegramUsername: 'unknown',
+          telegramChatId: String(chatId),
+          preferredLanguage: normalizePreferredLanguage(lang),
           role: 'user',
           password: Math.random().toString(36).slice(-8),
         });
@@ -271,6 +281,7 @@ ${msgs.downloadApp}
         subcategoryId: data.requirement.subcategoryId,
         contactPhone: data.requirement.contactPhone,
         createdBy: user._id,
+        preferredLanguage: data.preferredLanguage || normalizePreferredLanguage(lang),
         status: data.paymentProof ? 'pending_approval' : 'pending_payment',
         paymentProof: data.paymentProof || undefined,
       });
@@ -324,37 +335,7 @@ ${msgs.downloadApp}
     }
   },
 
-  formatRequirementMessage(requirement) {
-    const type = requirement.listingType === 'buy'
-      ? '🛒 Looking to Buy'
-      : '🏠 Looking to Rent';
-    const category = requirement.subcategoryId?.name || requirement.categoryId?.name || 'General';
-  
-    return `
-  🔍 <b>MARKETPLACE REQUIREMENT</b>
-  
-  📌 <b>${requirement.title}</b>
-  
-  ${type}
-  🗂️ <b>Category:</b> ${category}
-  💰 <b>Budget:</b> ${requirement.budget.toLocaleString()} ETB
-  📍 <b>Location:</b> ${requirement.location}
-  📞 <b>Contact:</b> ${requirement.contactPhone}
-  
-  📝 <b>Description:</b>
-  ${requirement.description}
-  
-  ━━━━━━━━━━━━━━━
-  
-  🤝 Have a matching property?
-  
-  Contact the requester directly using the phone number above.
-  
-  📢 Looking for something too?
-  Post your own requirement through our Telegram Bot:
-  👉 @SemuniDelalaBot
-  
-  🏠 <b>SemuniDelala</b> — No middleman. Direct connection.
-  `;
+  formatRequirementMessage(requirement, lang = requirement.preferredLanguage || requirement.createdBy?.preferredLanguage || 'en') {
+    return formatSharedRequirementMessage(requirement, lang);
   }
 };

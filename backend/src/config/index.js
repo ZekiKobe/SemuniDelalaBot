@@ -27,6 +27,7 @@ const config = {
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',
     channelId: process.env.TELEGRAM_CHANNEL_ID || '',
+    channelUrl: process.env.TELEGRAM_CHANNEL_URL || '',
     adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
   },

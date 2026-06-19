@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { PropertyStatus, RequirementType } = require('../../../domain/enums');
+const { PropertyStatus, RequirementType, PreferredLanguage } = require('../../../domain/enums');
 
 const paymentProofSchema = new mongoose.Schema({
   fileId: String,
@@ -41,8 +41,14 @@ const requirementSchema = new mongoose.Schema(
     subcategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
     contactPhone: { type: String, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    preferredLanguage: {
+      type: String,
+      enum: Object.values(PreferredLanguage),
+      default: PreferredLanguage.EN,
+    },
     status: { type: String, enum: Object.values(PropertyStatus), default: PropertyStatus.PENDING_PAYMENT },
     paymentProof: paymentProofSchema,
+    publishedAt: { type: Date },
     images: {
       type: [imageSchema],
       validate: {

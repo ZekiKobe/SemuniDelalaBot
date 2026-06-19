@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  backend:
+    build: .
+    container_name: delalabot
+    restart: always
+    ports:
+      - "8001:8000"   # avoid conflict with other backend
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb+srv://zekariaskobota_db_user:HWdriQixYigxujMu@delalacluster.ecvxvmi.mongodb.net/?appName=delalaCluster
+    depends_on:
+      - mongo
+    volumes:
+      - uploads:/app/uploads
+      - logs:/app/logs
+
+  mongo:
+    image: mongo:7
+    container_name: mongo_db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+  uploads:
+  logs:

@@ -27,6 +27,8 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
+const productMessages = (messages, lang) => messages[lang]?.product || messages.en.product;
+
 module.exports = {
   async startProductSubmission(chatId, user, lang) {
     const state = this.userStates.get(chatId) || {};
@@ -47,7 +49,7 @@ module.exports = {
     });
 
     await this.showCategorySelector(chatId, 'product', lang, {
-      prompt: 'Select product category:',
+      prompt: productMessages(this.messages, lang).selectCategory,
     });
   },
 
@@ -67,7 +69,7 @@ module.exports = {
     data.product.condition = condition;
     state.step = 'product_phone';
     this.userStates.set(chatId, state);
-    this.bot.sendMessage(chatId, 'Step 8/9: Contact phone\nExample: +251911000000');
+    this.bot.sendMessage(chatId, productMessages(this.messages, lang).stepPhone);
   },
 
   async handleProductSubmissionStep(chatId, text, user, lang) {
@@ -77,6 +79,7 @@ module.exports = {
 
     const product = data.product;
     const value = text.trim();
+    const msgs = productMessages(this.messages, lang);
 
     switch (state.step) {
       case 'product_title':
@@ -87,7 +90,7 @@ module.exports = {
         product.title = value;
         state.step = 'product_description';
         this.userStates.set(chatId, state);
-        this.bot.sendMessage(chatId, 'Step 2/9: Description\nInclude key specs, accessories, and any defects.');
+        this.bot.sendMessage(chatId, msgs.stepDescription);
         break;
 
       case 'product_description':
@@ -98,7 +101,7 @@ module.exports = {
         product.description = value;
         state.step = 'product_price';
         this.userStates.set(chatId, state);
-        this.bot.sendMessage(chatId, 'Step 3/9: Price in ETB');
+        this.bot.sendMessage(chatId, msgs.stepPrice);
         break;
 
       case 'product_price': {
@@ -110,7 +113,7 @@ module.exports = {
         product.price = price;
         state.step = 'product_location';
         this.userStates.set(chatId, state);
-        this.bot.sendMessage(chatId, 'Step 4/9: Location\nUse: City, Sub-city');
+        this.bot.sendMessage(chatId, msgs.stepLocation);
         break;
       }
 
@@ -127,7 +130,7 @@ module.exports = {
         };
         state.step = 'product_brand';
         this.userStates.set(chatId, state);
-        this.bot.sendMessage(chatId, 'Step 5/9: Brand\nSend "-" to skip.');
+        this.bot.sendMessage(chatId, msgs.stepBrand);
         break;
       }
 
@@ -135,21 +138,21 @@ module.exports = {
         if (value !== '-') product.brand = value;
         state.step = 'product_model';
         this.userStates.set(chatId, state);
-        this.bot.sendMessage(chatId, 'Step 6/9: Model\nSend "-" to skip.');
+        this.bot.sendMessage(chatId, msgs.stepModel);
         break;
 
       case 'product_model':
         if (value !== '-') product.model = value;
         state.step = 'product_year';
         this.userStates.set(chatId, state);
-        this.bot.sendMessage(chatId, 'Step 7/9: Year\nSend "-" to skip.');
+        this.bot.sendMessage(chatId, msgs.stepYear);
         break;
 
       case 'product_year': {
         if (value !== '-') {
           const year = Number(value);
           if (!Number.isInteger(year) || year < 1900 || year > 2100) {
-            this.bot.sendMessage(chatId, 'Invalid year. Send a year like 2023 or "-" to skip.');
+            this.bot.sendMessage(chatId, msgs.invalidYear);
             return;
           }
           product.year = year;
@@ -158,12 +161,12 @@ module.exports = {
         this.userStates.set(chatId, state);
         const keyboard = {
           inline_keyboard: [
-            [{ text: 'New', callback_data: `prodcond_${ProductCondition.NEW}` }],
-            [{ text: 'Used', callback_data: `prodcond_${ProductCondition.USED}` }],
-            [{ text: 'Refurbished', callback_data: `prodcond_${ProductCondition.REFURBISHED}` }],
+            [{ text: msgs.conditionNew, callback_data: `prodcond_${ProductCondition.NEW}` }],
+            [{ text: msgs.conditionUsed, callback_data: `prodcond_${ProductCondition.USED}` }],
+            [{ text: msgs.conditionRefurbished, callback_data: `prodcond_${ProductCondition.REFURBISHED}` }],
           ],
         };
-        this.bot.sendMessage(chatId, 'Select condition:', { reply_markup: keyboard });
+        this.bot.sendMessage(chatId, msgs.selectCondition, { reply_markup: keyboard });
         break;
       }
 
@@ -183,7 +186,8 @@ module.exports = {
             [{ text: this.messages[lang].skipImages, callback_data: 'images_skip' }],
           ],
         };
-        this.bot.sendMessage(chatId, 'Step 9/9: Send product images.', { reply_markup: imageKeyboard });
+        const imagePrompt = await this.bot.sendMessage(chatId, msgs.stepImages, { reply_markup: imageKeyboard });
+        data.imagePromptMessageId = imagePrompt.message_id;
         break;
       }
 

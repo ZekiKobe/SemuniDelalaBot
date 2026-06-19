@@ -4,6 +4,7 @@ const { TelegramPostStatus, TelegramPostType } = require('../../../domain/enums'
 const telegramPostSchema = new mongoose.Schema(
   {
     propertyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
+    listingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing' },
     requirementId: { type: mongoose.Schema.Types.ObjectId, ref: 'Requirement' },
     channelId: { type: String, required: true },
     messageId: { type: Number },
@@ -26,6 +27,7 @@ const telegramPostSchema = new mongoose.Schema(
 );
 
 telegramPostSchema.index({ propertyId: 1 });
+telegramPostSchema.index({ listingId: 1 });
 telegramPostSchema.index({ requirementId: 1 });
 telegramPostSchema.index({ status: 1, createdAt: -1 });
 

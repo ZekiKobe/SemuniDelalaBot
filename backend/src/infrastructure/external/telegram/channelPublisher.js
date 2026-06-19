@@ -41,8 +41,8 @@ async function postListingToChannel(bot, property) {
   }
 }
 
-async function postRequirementToChannel(bot, requirement) {
-  const message = formatRequirementMessage(requirement);
+async function postRequirementToChannel(bot, requirement, lang = requirement.preferredLanguage || requirement.createdBy?.preferredLanguage || 'en') {
+  const message = formatRequirementMessage(requirement, lang);
   const imagePaths = getImagePaths(requirement.images);
 
   try {

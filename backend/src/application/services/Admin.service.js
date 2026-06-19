@@ -277,6 +277,7 @@ class AdminService {
     const [data, total] = await Promise.all([
       TelegramPost.find()
         .populate('propertyId', 'title slug')
+        .populate('listingId', 'title slug')
         .populate('requirementId', 'title')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -337,6 +338,13 @@ class AdminService {
       body: `Your listing "${listing.title}" has been approved.`,
       data: { listingId: listingId.toString() },
     });
+
+    const fullListing = await listingRepository.findById(listingId);
+    try {
+      await telegramService.postMarketplaceListingToChannel(fullListing);
+    } catch {
+      // Non-blocking
+    }
 
     return updated;
   }

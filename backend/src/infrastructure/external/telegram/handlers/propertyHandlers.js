@@ -7,6 +7,7 @@ const logger = require('../../../../shared/logger/winston.logger');
 const propertyService = require('../../../../application/services/Property.service');
 const listingService = require('../../../../application/services/Listing.service');
 const propertyRepository = require('../../../database/repositories/Property.repository');
+const paymentRepository = require('../../../database/repositories/Payment.repository');
 const listingRepository = require('../../../database/repositories/Listing.repository');
 const categoryRepository = require('../../../database/repositories/Category.repository');
 const authRepository = require('../../../database/repositories/Auth.repository');
@@ -22,10 +23,113 @@ const {
   PropertyStatus,
   ListingStatus,
   ListingType,
+  PaymentMethod,
+  PaymentStatus,
   ProductCondition,
   TelegramPostStatus,
   TelegramPostType,
 } = require('../../../../domain/enums');
+
+const escapeHtml = (text) => {
+  if (text === undefined || text === null) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+};
+
+const truncate = (text, maxLength = 220) => {
+  if (!text) return '';
+  const value = String(text).trim();
+  return value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
+};
+
+const formatMoney = (amount, currency = 'ETB') => {
+  if (amount === undefined || amount === null) return 'Price not listed';
+  return `${Number(amount).toLocaleString()} ${currency}`;
+};
+
+const compactLocation = (...parts) => parts.filter(Boolean).join(', ');
+
+const listingTypeLabel = (listingType) => ({
+  [ListingType.HOUSE_RENT]: 'House for rent',
+  [ListingType.HOUSE_SALE]: 'House for sale',
+  [ListingType.PRODUCT_SALE]: 'Product for sale',
+}[listingType] || 'Listing');
+
+const formatBrowsePropertyCaption = (property, index, total) => {
+  const location = compactLocation(property.subCity, property.city, property.region);
+  const details = [
+    property.propertyType,
+    property.bedrooms !== undefined ? `${property.bedrooms} bed` : null,
+    property.bathrooms !== undefined ? `${property.bathrooms} bath` : null,
+  ].filter(Boolean).join(' | ');
+
+  return [
+    `<b>${index}/${total}. ${escapeHtml(property.title)}</b>`,
+    `Price: <b>${escapeHtml(formatMoney(property.rentPrice))}</b>`,
+    location ? `Location: ${escapeHtml(location)}` : null,
+    property.contactPhone ? `Contact: ${escapeHtml(property.contactPhone)}` : null,
+    details ? `Details: ${escapeHtml(details)}` : null,
+    property.slug ? `<a href="${config.app.url}/property/${property.slug}">View details</a>` : null,
+  ].filter(Boolean).join('\n');
+};
+
+const formatBrowseMarketplaceCaption = (listing, index, total) => {
+  const location = compactLocation(
+    listing.location?.area,
+    listing.location?.subCity,
+    listing.location?.city,
+    listing.location?.region
+  );
+  const details = listing.listingType === ListingType.PRODUCT_SALE
+    ? compactLocation(listing.productDetails?.brand, listing.productDetails?.model, listing.productDetails?.condition)
+    : compactLocation(
+      listing.propertyDetails?.propertyType,
+      listing.propertyDetails?.bedrooms !== undefined ? `${listing.propertyDetails.bedrooms} bed` : null,
+      listing.propertyDetails?.bathrooms !== undefined ? `${listing.propertyDetails.bathrooms} bath` : null
+    );
+
+  return [
+    `<b>${index}/${total}. ${escapeHtml(listing.title)}</b>`,
+    escapeHtml(listingTypeLabel(listing.listingType)),
+    `Price: <b>${escapeHtml(formatMoney(listing.price, listing.currency || 'ETB'))}</b>`,
+    location ? `Location: ${escapeHtml(location)}` : null,
+    listing.contactPhone ? `Contact: ${escapeHtml(listing.contactPhone)}` : null,
+    details ? `Details: ${escapeHtml(details)}` : null,
+    listing.description ? `\n${escapeHtml(truncate(listing.description))}` : null,
+    `<a href="${config.app.url}/marketplace/listings/${listing._id}">View details</a>`,
+  ].filter(Boolean).join('\n');
+};
+
+const resolveTelegramImageSources = async (images = []) => {
+  const sources = [];
+  const sortedImages = [...images].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  for (const image of sortedImages) {
+    const imageUrl = image.url || image.thumbnailUrl;
+    if (!imageUrl) continue;
+
+    if (/^https?:\/\//i.test(imageUrl)) {
+      sources.push(imageUrl);
+      continue;
+    }
+
+    const imagePath = path.join(process.cwd(), imageUrl.replace(/^\//, ''));
+    try {
+      await fs.access(imagePath);
+      sources.push(imagePath);
+    } catch (error) {
+      logger.warn('Telegram browse image file is not readable', {
+        imageUrl,
+        imagePath,
+        error: error.message,
+      });
+    }
+  }
+
+  return sources;
+};
 
 module.exports = {
   async startPropertySubmission(chatId, user, lang, listingType = null) {
@@ -155,9 +259,10 @@ module.exports = {
             [{ text: msgs.skipImages, callback_data: 'images_skip' }]
           ]
         };
-        this.bot.sendMessage(chatId, msgs.step8_images, {
+        const imagePrompt = await this.bot.sendMessage(chatId, msgs.step8_images, {
           reply_markup: imageKeyboard
         });
+        propertyData.imagePromptMessageId = imagePrompt.message_id;
         break;
 
       default:
@@ -187,21 +292,6 @@ module.exports = {
           filePath,
           downloadUrl
         };
-
-        // If this is a requirement submission, notify admin with the payment proof for review
-        if (propertyData && propertyData.requirement && config.telegram.adminChatId) {
-          const req = propertyData.requirement;
-          const adminMessage = `💳 *New Requirement Payment Proof*\n\n*Title:* ${req.title}\n*Budget:* ${req.budget} ETB\n*Contact:* ${req.contactPhone}\n*From Telegram Chat:* ${chatId}\n\nPayment proof attached for review.`;
-          try {
-            await this.bot.sendPhoto(config.telegram.adminChatId, fileId, {
-              caption: adminMessage,
-              parse_mode: 'Markdown'
-            });
-          } catch (err) {
-            logger.error('Failed to send requirement payment proof to admin', { error: err.message });
-          }
-        }
-
         state.step = 'summary';
         this.userStates.set(chatId, state);
         if (propertyData?.marketplaceListing) {
@@ -229,8 +319,57 @@ module.exports = {
     if (!Array.isArray(propertyData.images)) {
       propertyData.images = [];
     }
+    const imageKeyboard = {
+      inline_keyboard: [
+        [{ text: msgs.doneImages, callback_data: 'images_done' }],
+        [{ text: msgs.skipImages, callback_data: 'images_skip' }]
+      ]
+    };
+    const showLatestImageControls = async (text) => {
+      propertyData.imageControlsUpdate = (propertyData.imageControlsUpdate || Promise.resolve())
+        .catch(() => {})
+        .then(async () => {
+          if (propertyData.imageControlsMessageId) {
+            try {
+              await this.bot.deleteMessage(chatId, propertyData.imageControlsMessageId);
+            } catch (error) {
+              logger.debug('Failed to delete previous image controls', {
+                error: error.message,
+                chatId,
+                messageId: propertyData.imageControlsMessageId
+              });
+            }
+          }
+
+          const sent = await this.bot.sendMessage(chatId, text, {
+            reply_markup: imageKeyboard
+          });
+          propertyData.imageControlsMessageId = sent.message_id;
+        });
+
+      await propertyData.imageControlsUpdate;
+    };
+
+    const clearInitialImagePromptControls = async () => {
+      if (!propertyData.imagePromptMessageId) return;
+
+      try {
+        await this.bot.editMessageReplyMarkup(
+          { inline_keyboard: [] },
+          { chat_id: chatId, message_id: propertyData.imagePromptMessageId }
+        );
+      } catch (error) {
+        logger.debug('Failed to clear initial image prompt controls', {
+          error: error.message,
+          chatId,
+          messageId: propertyData.imagePromptMessageId
+        });
+      }
+    };
+
     if (propertyData.images.length >= 10) {
-      this.bot.sendMessage(chatId, msgs.maxImages);
+      await clearInitialImagePromptControls();
+      await showLatestImageControls(msgs.maxImages);
       return;
     }
 
@@ -248,11 +387,8 @@ module.exports = {
         downloadUrl
       });
 
-      this.bot.sendMessage(chatId, `${msgs.imageUploaded} ${propertyData.images.length}/10`);
-
-      if (propertyData.marketplaceListing || !propertyData.requirement) {
-        await this.requestPaymentProof(chatId, false, lang);
-      }
+      await clearInitialImagePromptControls();
+      await showLatestImageControls(`${msgs.imageUploaded} ${propertyData.images.length}/10`);
     } catch (error) {
       logger.error('Failed to process photo', { error: error.message });
       this.bot.sendMessage(chatId, '❌ Failed to process image. Please try again.');
@@ -281,43 +417,67 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
 
   async showBrowseProperties(chatId, lang) {
     try {
-      // Fetch approved properties from the database
-      const properties = await propertyRepository.findApproved({}, { createdAt: -1 }, 5);
+      const [properties, marketplaceListings] = await Promise.all([
+        propertyRepository.findApproved({}, { createdAt: -1 }),
+        listingRepository.findApproved({}, { createdAt: -1 }),
+      ]);
 
-      if (!properties || properties.length === 0) {
-        this.bot.sendMessage(chatId, '🏠 No properties available at the moment. Please check back later.');
+      const browseItems = [
+        ...properties.map((property) => ({
+          type: 'property',
+          record: property,
+          date: property.publishedAt || property.createdAt,
+        })),
+        ...marketplaceListings.map((listing) => ({
+          type: 'marketplace',
+          record: listing,
+          date: listing.publishedAt || listing.createdAt,
+        })),
+      ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+      if (browseItems.length === 0) {
+        this.bot.sendMessage(chatId, 'No approved listings are available at the moment. Please check back later.');
         return;
       }
 
-      let message = '🏠 *Available Properties*\n\n';
+      for (const [index, item] of browseItems.entries()) {
+        const caption = item.type === 'property'
+          ? formatBrowsePropertyCaption(item.record, index + 1, browseItems.length)
+          : formatBrowseMarketplaceCaption(item.record, index + 1, browseItems.length);
+        const imageSources = await resolveTelegramImageSources(item.record.images);
 
-      properties.forEach((property, index) => {
-        message += `*${index + 1}. ${property.title}*\n`;
-        message += `💰 ${property.rentPrice} ETB\n`;
-        message += `📍 ${property.city}, ${property.subCity}\n`;
-        message += `🏢 ${property.propertyType}\n\n`;
-      });
-
-      message += '📱 For more details and contact information, download our mobile app.';
+        if (imageSources.length === 1) {
+          await this.bot.sendPhoto(chatId, imageSources[0], {
+            caption,
+            parse_mode: 'HTML',
+          });
+        } else if (imageSources.length > 1) {
+          const mediaGroup = imageSources.slice(0, 10).map((source, imageIndex) => ({
+            type: 'photo',
+            media: source,
+            ...(imageIndex === 0 && { caption, parse_mode: 'HTML' }),
+          }));
+          await this.bot.sendMediaGroup(chatId, mediaGroup);
+        } else {
+          await this.bot.sendMessage(chatId, caption, {
+            parse_mode: 'HTML',
+            disable_web_page_preview: false,
+          });
+        }
+      }
 
       const keyboard = {
-        inline_keyboard: [
-          [
-            { text: '📱 Download App', url: 'https://your-app-url.com' }
-          ],
-          [
-            { text: '🔄 Refresh', callback_data: 'browse_properties' }
-          ]
-        ]
+        inline_keyboard: [[
+          { text: 'Refresh', callback_data: 'browse_properties' }
+        ]]
       };
 
-      this.bot.sendMessage(chatId, message, {
-        parse_mode: 'Markdown',
+      await this.bot.sendMessage(chatId, 'End of listings.', {
         reply_markup: keyboard
       });
     } catch (error) {
       logger.error('Failed to browse properties', { error: error.message });
-      this.bot.sendMessage(chatId, '❌ Failed to load properties. Please try again later.');
+      this.bot.sendMessage(chatId, 'Failed to load listings. Please try again later.');
     }
   },
 
@@ -359,11 +519,10 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
 
       message += '📱 For more details and contact information, download our mobile app.';
 
+      const appButton = this.getAppInlineButton(this.messages[lang].downloadAppButton);
       const keyboard = {
         inline_keyboard: [
-          [
-            { text: '📱 Download App', url: 'https://your-app-url.com' }
-          ],
+          ...(appButton ? [[appButton]] : []),
           [
             { text: '🔍 Search Again', callback_data: 'search_location' }
           ]
@@ -430,9 +589,10 @@ ${propertyData.paymentProof ? msgs.afterPaymentProof : msgs.afterPayment}
 ${msgs.downloadApp}
     `;
 
+    const appButton = this.getAppInlineButton(msgs.downloadAppButton);
     const keyboard = {
       inline_keyboard: [
-        [{ text: msgs.downloadAppButton, url: 'https://your-app-url.com' }],
+        ...(appButton ? [[appButton]] : []),
         ...(propertyData.paymentProof ? [[
           { text: msgs.submit, callback_data: 'submit_later' },
           { text: msgs.cancel, callback_data: 'cancel_submission' }
@@ -488,10 +648,31 @@ ${msgs.downloadApp}
 
       // Store payment proof for admin approval
       if (propertyData.paymentProof) {
+        const payment = await paymentRepository.create({
+          userId: user._id,
+          propertyId: property._id,
+          amount: config.payment.listingFeeEtb,
+          method: PaymentMethod.TELEBIRR,
+          status: PaymentStatus.SUBMITTED,
+          transactionReference: `telegram:${property._id}`,
+          screenshotUrl: propertyData.paymentProof.downloadUrl,
+          submittedAt: new Date(),
+          adminNotes: `Submitted from Telegram. Proof file id: ${propertyData.paymentProof.fileId}`,
+          paymentInstructions: {
+            telebirr: config.payment.telebirr,
+            cbe: config.payment.cbe,
+          },
+        });
+
+        property = await propertyRepository.update(property._id, {
+          paymentId: payment._id,
+        });
+
         // Store property ID for admin approval
         this.tempPropertyData.set(`admin_${property._id}`, {
           propertyId: property._id,
           userId: user._id,
+          paymentId: payment._id,
           paymentProof: propertyData.paymentProof,
           chatId: chatId
         });
@@ -506,6 +687,7 @@ ${msgs.downloadApp}
 *Contact:* ${propertyData.contactPhone}
 *User:* @${state.username || 'N/A'}
 *Property ID:* ${property._id}
+*Payment ID:* ${payment._id}
 
 Payment proof is attached for review.
           `;

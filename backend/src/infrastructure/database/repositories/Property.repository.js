@@ -41,11 +41,13 @@ class PropertyRepository {
     return { data, total };
   }
 
-  async findApproved(filter, sort, limit) {
-    return Property.find({ status: PropertyStatus.APPROVED, ...filter })
+  async findApproved(filter = {}, sort = { createdAt: -1 }, limit = 0) {
+    const query = Property.find({ status: PropertyStatus.APPROVED, ...filter })
       .sort(sort)
-      .limit(limit)
-      .select('title rentPrice subCity city region propertyType bedrooms bathrooms images slug views');
+      .select('title rentPrice subCity city region propertyType bedrooms bathrooms images slug views contactPhone publishedAt createdAt');
+
+    if (Number(limit) > 0) query.limit(Number(limit));
+    return query;
   }
 
   async findByCreator(userId, status, skip, limit) {
