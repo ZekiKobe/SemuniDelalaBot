@@ -61,6 +61,13 @@ class ListingRepository {
     return Listing.countDocuments(status ? { status } : {});
   }
 
+  async findByUser(userId) {
+    return Listing.find({ sellerId: userId })
+      .populate('categoryId', 'name slug')
+      .populate('subcategoryId', 'name slug')
+      .sort({ createdAt: -1 });
+  }
+
   async incrementViews(listingId, viewData) {
     await Promise.all([
       Listing.findByIdAndUpdate(listingId, { $inc: { views: 1 } }),

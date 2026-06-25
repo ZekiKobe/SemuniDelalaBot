@@ -7,6 +7,9 @@ import '../../../data/models/unified_listing_model.dart';
 import '../../../data/datasources/remote/unified_listing_remote_datasource.dart';
 import '../../../core/network/dio_client.dart';
 import '../../widgets/state_widgets.dart';
+import '../../widgets/auth_gate.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/favorite_provider.dart';
 
 // Provider for fetching listing detail by ID
 final listingDetailProvider = FutureProvider.family<UnifiedListingModel, String>((ref, id) async {
@@ -30,11 +33,14 @@ class ListingDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesNotifierProvider);
+    final isFavorited = favorites.contains(listing.id);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(context),
+          _buildAppBar(context, ref, isFavorited),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,11 +57,11 @@ class ListingDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(context),
+      bottomNavigationBar: _buildBottomBar(context, ref),
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, WidgetRef ref, bool isFavorited) {
     return SliverAppBar(
       expandedHeight: 0,
       floating: true,
@@ -74,16 +80,26 @@ class ListingDetailScreen extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () {
-            // TODO: Add to favorites
-          },
+          onPressed: () => _handleFavoriteToggle(context, ref),
           icon: Icon(
-            listing.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            color: listing.isFavorite ? AppColors.accent : null,
+            isFavorited ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: isFavorited ? AppColors.accent : null,
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _handleFavoriteToggle(BuildContext context, WidgetRef ref) async {
+    final hasAuth = await AuthGate.requireAuth(
+      context,
+      ref,
+      message: 'Login to save listings',
+    );
+    
+    if (hasAuth) {
+      await ref.read(favoritesNotifierProvider.notifier).toggle(listing.id);
+    }
   }
 
   Widget _buildImageGallery(BuildContext context) {
@@ -125,11 +141,39 @@ class ListingDetailScreen extends ConsumerWidget {
           return Image.network(
             listing.images[index].url,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
               return Container(
                 color: AppColors.surfaceMuted,
-                child: const Center(
-                  child: Icon(Icons.broken_image, size: 48, color: AppColors.textMuted),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading image: ${listing.images[index].url}');
+              print('Error: $error');
+              return Container(
+                color: AppColors.surfaceMuted,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.broken_image, size: 48, color: AppColors.textMuted),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Image unavailable',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -404,7 +448,7 @@ class ListingDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context) {
+  Widget _buildBottomBar(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -422,7 +466,7 @@ class ListingDetailScreen extends ConsumerWidget {
           children: [
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () => _makePhoneCall(listing.contactPhone),
+                onPressed: () => _handleCall(context, ref),
                 icon: const Icon(Icons.phone_rounded),
                 label: const Text('Call'),
                 style: ElevatedButton.styleFrom(
@@ -438,7 +482,7 @@ class ListingDetailScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => _sendMessage(listing.contactPhone),
+                onPressed: () => _handleMessage(context, ref),
                 icon: const Icon(Icons.message_rounded),
                 label: const Text('Message'),
                 style: OutlinedButton.styleFrom(
@@ -455,6 +499,30 @@ class ListingDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleCall(BuildContext context, WidgetRef ref) async {
+    final hasAuth = await AuthGate.requireAuth(
+      context,
+      ref,
+      message: 'Login to call the seller',
+    );
+    
+    if (hasAuth && context.mounted) {
+      await _makePhoneCall(listing.contactPhone);
+    }
+  }
+
+  Future<void> _handleMessage(BuildContext context, WidgetRef ref) async {
+    final hasAuth = await AuthGate.requireAuth(
+      context,
+      ref,
+      message: 'Login to message the seller',
+    );
+    
+    if (hasAuth && context.mounted) {
+      await _sendMessage(listing.contactPhone);
+    }
   }
 
   Future<void> _makePhoneCall(String phoneNumber) async {

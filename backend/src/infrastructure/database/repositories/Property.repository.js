@@ -62,6 +62,12 @@ class PropertyRepository {
     return { data, total };
   }
 
+  async findByUser(userId) {
+    return Property.find({ createdBy: userId })
+      .sort({ createdAt: -1 })
+      .select('title rentPrice subCity city region propertyType bedrooms bathrooms images slug status contactPhone createdAt');
+  }
+
   async getPopularAreas() {
     return Property.aggregate([
       { $match: { status: PropertyStatus.APPROVED } },

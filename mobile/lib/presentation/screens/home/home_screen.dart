@@ -5,9 +5,11 @@ import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/unified_listing_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/modern_listing_card.dart';
 import '../../widgets/state_widgets.dart';
+import '../../widgets/auth_gate.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -34,7 +36,7 @@ class HomeScreen extends ConsumerWidget {
           child: CustomScrollView(
             slivers: [
               // Modern Header
-              SliverToBoxAdapter(child: _ModernHeader()),
+              SliverToBoxAdapter(child: _ModernHeader(ref: ref)),
               const SliverToBoxAdapter(child: SizedBox(height: 8)),
               
               // Search Bar
@@ -102,7 +104,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: const DelalaBottomNav(currentIndex: 0),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/post-selection'),
+        onPressed: () => _handlePostListing(context, ref),
         backgroundColor: AppColors.accent,
         foregroundColor: Colors.white,
         elevation: 6,
@@ -111,9 +113,25 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _handlePostListing(BuildContext context, WidgetRef ref) async {
+    final hasAuth = await AuthGate.requireAuth(
+      context,
+      ref,
+      message: 'Login to post a listing',
+    );
+    
+    if (hasAuth && context.mounted) {
+      context.push('/post-selection');
+    }
+  }
 }
 
 class _ModernHeader extends StatelessWidget {
+  final WidgetRef ref;
+
+  const _ModernHeader({required this.ref});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -157,7 +175,7 @@ class _ModernHeader extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () => context.push('/profile'),
+            onPressed: () => _handleProfileTap(context, ref),
             style: IconButton.styleFrom(
               backgroundColor: AppColors.surfaceMuted,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -167,6 +185,24 @@ class _ModernHeader extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handleProfileTap(BuildContext context, WidgetRef ref) async {
+    final isAuthenticated = ref.read(authProvider).isAuthenticated;
+    
+    if (isAuthenticated) {
+      context.push('/profile');
+    } else {
+      final hasAuth = await AuthGate.requireAuth(
+        context,
+        ref,
+        message: 'Login to view your profile and manage your listings',
+      );
+      
+      if (hasAuth && context.mounted) {
+        context.push('/profile');
+      }
+    }
   }
 }
 

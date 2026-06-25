@@ -411,14 +411,158 @@ module.exports = {
   async showUserListings(chatId, user, lang) {
     try {
       const msgs = this.getMsgs(lang);
-      const username = user?.username || 'N/A';
-      await this.bot.sendMessage(chatId, `${msgs.yourListingsTitle}\n\n${msgs.yourListingsBody.replace('{username}', username)}`, {
-        parse_mode: 'Markdown',
+      
+      // Find user by telegram chat ID
+      const dbUser = await authRepository.findByTelegramChatId(chatId);
+      
+      if (!dbUser) {
+        const username = user?.username || 'N/A';
+        await this.bot.sendMessage(chatId, `${msgs.yourListingsTitle}\n\n${msgs.yourListingsBody.replace('{username}', username)}`, {
+          parse_mode: 'Markdown',
+          reply_markup: this.getMainReplyKeyboard(lang),
+        });
+        return;
+      }
+
+      // Get user's listings - both properties and marketplace listings
+      const [properties, marketplaceListings] = await Promise.all([
+        propertyRepository.findByUser(dbUser._id),
+        listingRepository.findByUser(dbUser._id),
+      ]);
+
+      const allListings = [
+        ...properties.map(p => ({ type: 'property', record: p, date: p.createdAt })),
+        ...marketplaceListings.map(l => ({ type: 'marketplace', record: l, date: l.createdAt })),
+      ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (allListings.length === 0) {
+        await this.bot.sendMessage(chatId, msgs.noListings || 'You have no listings yet.', {
+          reply_markup: this.getMainReplyKeyboard(lang),
+        });
+        return;
+      }
+
+      // Show listings with view buttons
+      await this.bot.sendMessage(chatId, `${msgs.yourListingsTitle}\n\nFound ${allListings.length} listing(s):`, {
         reply_markup: this.getMainReplyKeyboard(lang),
       });
+
+      for (const [index, item] of allListings.entries()) {
+        const listing = item.record;
+        const statusEmoji = listing.status === 'approved' ? '✅' : listing.status === 'pending' ? '⏳' : '❌';
+        const title = listing.title || 'Untitled';
+        const price = listing.rentPrice || listing.price || 0;
+        
+        const keyboard = {
+          inline_keyboard: [[
+            { 
+              text: 'View Details', 
+              callback_data: item.type === 'property' 
+                ? `view_property_${listing._id}` 
+                : `view_listing_${listing._id}` 
+            }
+          ]]
+        };
+
+        await this.bot.sendMessage(
+          chatId,
+          `${index + 1}. ${statusEmoji} ${title}\n💰 ${price.toLocaleString()} ETB\nStatus: ${listing.status}`,
+          { reply_markup: keyboard }
+        );
+      }
     } catch (error) {
       logger.error('Failed to show user listings', { error: error.message });
       this.bot.sendMessage(chatId, this.getMsgs(lang).failedListings);
+    }
+  },
+
+  async showListingDetails(chatId, listingId, listingType, lang) {
+    try {
+      const msgs = this.getMsgs(lang);
+      let listing, imageSources, caption;
+
+      if (listingType === 'property') {
+        listing = await propertyRepository.findById(listingId);
+        if (!listing) {
+          await this.bot.sendMessage(chatId, msgs.listingNotFound || 'Listing not found.');
+          return;
+        }
+        
+        const location = compactLocation(listing.subCity, listing.city, listing.region);
+        const details = [
+          listing.propertyType,
+          listing.bedrooms !== undefined ? `${listing.bedrooms} bed` : null,
+          listing.bathrooms !== undefined ? `${listing.bathrooms} bath` : null,
+        ].filter(Boolean).join(' | ');
+
+        caption = [
+          `<b>${escapeHtml(listing.title)}</b>`,
+          `Price: <b>${escapeHtml(formatMoney(listing.rentPrice))}</b>`,
+          location ? `Location: ${escapeHtml(location)}` : null,
+          listing.contactPhone ? `Contact: ${escapeHtml(listing.contactPhone)}` : null,
+          details ? `Details: ${escapeHtml(details)}` : null,
+          listing.description ? `\n${escapeHtml(listing.description)}` : null,
+          `\nStatus: ${listing.status}`,
+        ].filter(Boolean).join('\n');
+        
+        imageSources = await resolveTelegramImageSources(listing.images);
+      } else {
+        listing = await listingRepository.findById(listingId);
+        if (!listing) {
+          await this.bot.sendMessage(chatId, msgs.listingNotFound || 'Listing not found.');
+          return;
+        }
+
+        const location = compactLocation(
+          listing.location?.area,
+          listing.location?.subCity,
+          listing.location?.city,
+          listing.location?.region
+        );
+        const isProduct = listing.listingType === ListingType.PRODUCT_SALE;
+        const details = isProduct
+          ? compactLocation(listing.productDetails?.brand, listing.productDetails?.model, listing.productDetails?.condition)
+          : compactLocation(
+            listing.propertyDetails?.propertyType,
+            listing.propertyDetails?.bedrooms !== undefined ? `${listing.propertyDetails.bedrooms} bed` : null,
+            listing.propertyDetails?.bathrooms !== undefined ? `${listing.propertyDetails.bathrooms} bath` : null
+          );
+
+        caption = [
+          `<b>${escapeHtml(listing.title)}</b>`,
+          escapeHtml(listingTypeLabel(listing.listingType)),
+          `Price: <b>${escapeHtml(formatMoney(listing.price, listing.currency || 'ETB'))}</b>`,
+          location ? `Location: ${escapeHtml(location)}` : null,
+          listing.contactPhone ? `Contact: ${escapeHtml(listing.contactPhone)}` : null,
+          details ? `Details: ${escapeHtml(details)}` : null,
+          listing.description ? `\n${escapeHtml(listing.description)}` : null,
+          `\nStatus: ${listing.status}`,
+        ].filter(Boolean).join('\n');
+        
+        imageSources = await resolveTelegramImageSources(listing.images);
+      }
+
+      // Send images with caption
+      if (imageSources.length === 1) {
+        await this.bot.sendPhoto(chatId, imageSources[0], {
+          caption,
+          parse_mode: 'HTML',
+        });
+      } else if (imageSources.length > 1) {
+        const mediaGroup = imageSources.slice(0, 10).map((source, index) => ({
+          type: 'photo',
+          media: source,
+          ...(index === 0 && { caption, parse_mode: 'HTML' }),
+        }));
+        await this.bot.sendMediaGroup(chatId, mediaGroup);
+      } else {
+        await this.bot.sendMessage(chatId, caption, {
+          parse_mode: 'HTML',
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to show listing details', { error: error.message, listingId });
+      this.bot.sendMessage(chatId, this.getMsgs(lang).failedBrowse || 'Failed to load listing details.');
     }
   },
 
@@ -462,10 +606,21 @@ module.exports = {
           : formatBrowseMarketplaceCaption(item.record, globalIndex, browseItems.length);
         const imageSources = await resolveTelegramImageSources(item.record.images);
 
+        // Add view details button
+        const viewButton = {
+          inline_keyboard: [[{
+            text: '👁️ View Full Details',
+            callback_data: item.type === 'property'
+              ? `view_property_${item.record._id}`
+              : `view_listing_${item.record._id}`
+          }]]
+        };
+
         if (imageSources.length === 1) {
           await this.bot.sendPhoto(chatId, imageSources[0], {
             caption,
             parse_mode: 'HTML',
+            reply_markup: viewButton,
           });
         } else if (imageSources.length > 1) {
           const mediaGroup = imageSources.slice(0, 10).map((source, imageIndex) => ({
@@ -474,10 +629,15 @@ module.exports = {
             ...(imageIndex === 0 && { caption, parse_mode: 'HTML' }),
           }));
           await this.bot.sendMediaGroup(chatId, mediaGroup);
+          // Send button separately after media group
+          await this.bot.sendMessage(chatId, '👁️ View full details:', {
+            reply_markup: viewButton,
+          });
         } else {
           await this.bot.sendMessage(chatId, caption, {
             parse_mode: 'HTML',
             disable_web_page_preview: false,
+            reply_markup: viewButton,
           });
         }
       }
@@ -509,6 +669,11 @@ module.exports = {
     if (!state) return;
 
     const propertyData = this.tempPropertyData.get(chatId);
+    if (!propertyData) {
+      logger.error('Property data not found for property type selection', { chatId });
+      return;
+    }
+    
     propertyData.propertyType = type;
     state.step = 'price';
     this.userStates.set(chatId, state);

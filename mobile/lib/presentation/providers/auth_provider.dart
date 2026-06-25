@@ -29,12 +29,13 @@ class AuthState {
     bool? isLoading,
     bool? isAuthenticated,
     String? error,
+    bool clearError = false,
   }) {
     return AuthState(
       user: user ?? this.user,
-      isLoading: isLoading ?? this.isLoading,
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      error: error,
+      isLoading: isLoading != null ? isLoading : this.isLoading,
+      isAuthenticated: isAuthenticated != null ? isAuthenticated : this.isAuthenticated,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -72,7 +73,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<bool> login(String identifier, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       final result = await _authRemote.login(identifier, password);
       await _storage.saveTokens(
@@ -97,7 +98,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<bool> loginWithTelegram() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       // TODO: Implement actual Telegram authentication flow
       // For now, this is a placeholder that would normally:
@@ -143,7 +144,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String password,
     String? preferredLanguage,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       final normalized = normalizeEthiopianPhone(phoneNumber);
       final localeCode = preferredLanguage ?? _ref.read(localeProvider).languageCode;

@@ -52,7 +52,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
       final isAuth = ref.read(authProvider).isAuthenticated;
-      context.go(isAuth ? '/' : '/login');
+      context.go(isAuth ? '/' : '/');
     });
   }
 

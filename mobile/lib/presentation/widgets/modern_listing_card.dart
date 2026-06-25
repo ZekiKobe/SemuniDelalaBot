@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_decorations.dart';
 import '../../data/models/unified_listing_model.dart';
 import '../screens/listing/listing_detail_screen.dart';
+import '../providers/favorite_provider.dart';
+import '../providers/auth_provider.dart';
+import 'auth_gate.dart';
 
-class ModernListingCard extends StatelessWidget {
+class ModernListingCard extends ConsumerWidget {
   final UnifiedListingModel listing;
   final double? width;
   final bool showCategory;
@@ -17,7 +21,10 @@ class ModernListingCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesNotifierProvider);
+    final isFavorited = favorites.contains(listing.id);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -45,7 +52,7 @@ class ModernListingCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Image with gradient overlay
-            _buildImageSection(context),
+            _buildImageSection(context, ref, isFavorited),
             
             // Content
             Padding(
@@ -179,7 +186,7 @@ class ModernListingCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImageSection(BuildContext context) {
+  Widget _buildImageSection(BuildContext context, WidgetRef ref, bool isFavorited) {
     final hasImage = listing.primaryImage != null && listing.primaryImage!.isNotEmpty;
     
     return Stack(
@@ -269,8 +276,48 @@ class ModernListingCard extends StatelessWidget {
               ),
             ),
           ),
+        
+        // Heart/Favorite button
+        Positioned(
+          top: 12,
+          right: 12,
+          child: GestureDetector(
+            onTap: () => _handleFavoriteToggle(context, ref),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                isFavorited ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isFavorited ? AppColors.accent : AppColors.textMuted,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  Future<void> _handleFavoriteToggle(BuildContext context, WidgetRef ref) async {
+    final hasAuth = await AuthGate.requireAuth(
+      context,
+      ref,
+      message: 'Login to save listings',
+    );
+    
+    if (hasAuth) {
+      await ref.read(favoritesNotifierProvider.notifier).toggle(listing.id);
+    }
   }
 
   Widget _buildTypeRow(BuildContext context) {

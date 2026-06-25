@@ -421,6 +421,14 @@ class TelegramBotService {
           await this.bot.answerCallbackQuery(query.id);
           const requirementId = data.replace('reject_req_', '');
           await this.handleAdminRequirementApproval(chatId, requirementId, false, query.message);
+        } else if (data.startsWith('view_property_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const propertyId = data.replace('view_property_', '');
+          await this.showListingDetails(chatId, propertyId, 'property', lang);
+        } else if (data.startsWith('view_listing_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const listingId = data.replace('view_listing_', '');
+          await this.showListingDetails(chatId, listingId, 'marketplace', lang);
         } else if (data.startsWith('approve_listing_')) {
           await this.bot.answerCallbackQuery(query.id);
           const listingId = data.replace('approve_listing_', '');

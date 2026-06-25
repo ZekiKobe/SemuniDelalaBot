@@ -59,12 +59,14 @@ Please select your preferred language to continue:`,
     failedSearch: "❌ Failed to search properties. Please try again.",
     failedBrowse: "Failed to load listings. Please try again later.",
     failedListings: "❌ Failed to retrieve your listings.",
+    noListings: "📋 You don't have any listings yet.\n\nUse the menu below to post a property or product.",
+    listingNotFound: "❌ Listing not found or no longer available.",
     locationTooShort: "❌ Location too short. Please enter a valid location.",
     yourListingsTitle: "📋 *Your Listings*",
     yourListingsBody: "To view your listings, please use our mobile app with the same phone number.\nOr contact support with your Telegram username: @{username}",
     supportTicketHeader: "New Telegram support request",
     supportMessage:
-      "☎️ SemuniDelala Support\n\nIf you face any problem, call us:\n+251 99 367 6861\n+251 93 663 9391\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
+      "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
     supportReceived: "✅ Your message was sent to support. We will follow up soon.",
     supportUnavailable:
       "Support is not connected yet. Please try again later or use the mobile app.",
@@ -203,9 +205,9 @@ Please select your preferred language to continue:`,
   am: {
     welcome: `🏠 *እንኳን ወደ ስሙኒ ደላላ በደህና መጡ*
 
-ስሙኒ ደላላ ለቤት እና ለዕቃዎች የታመነ የኢትዮጵያ ዲጂታል መገበያያ መድረክ ነው።
+ስሙኒ ደላላ ለቤት እና ለዕቃዎች የሚያስተማምኑ የኢትዮጵያ የመገበያያ አገልግሎት ነው።
 
-መድረካችን ከገዢዎች፣ ሻጮች፣ አከራዮች እና ተከራዮች ጋር በቀላሉና በታማኝነት ቀጥታ እንዲገናኙ ያግዛል።
+አገልግሎታችን ገዢዎች፣ ሻጮች፣ አከራዮች እና ተከራዮች በቀላሉ እርስ በርሳቸው እንዲገናኙ ያግዛል።
 
 ለመቀጠል እባክዎ የሚመርጡትን ቋንቋ ይምረጡ:`,
     selectLanguage: "ቋንቋ ይምረጡ",
@@ -220,16 +222,16 @@ Please select your preferred language to continue:`,
 🎯 **ለሻጮች:**
 • ከገዢዎች ጋር ቀጥተኛ ግንኙነት
 • ምንም ኮሚሽን ክፍያ የለም
-• ፈጣን ማረጋገጫ
-• በመላው ኢትዮጵያ ሰፊ ተደራሽነት
+• ፈጣን ማጽደቅ
+• በመላው ኢትዮጵያ ለብዙ ሰዎች ይደርሳል
 
 🎯 **ለገዢዎች:**
-• ከንብረት ባለቤቶች ጋር ቀጥተኛ ግንኙነት
-• የተረጋገጡ ዝርዝሮች
-• ምንም የተደበቁ ክፍያዎች የሉም
+• ከቤት ባለቤቶች ጋር ቀጥተኛ ግንኙነት
+• የተረጋገጡ ማስታወቂያዎች
+• ምንም ተጨማሪ ክፍያ የለም
 • ጊዜና ገንዘብ ይቆጥቡ
 
-*ስሙኒ ዴላላ — የኢትዮጵያ የታመነ የንብረት መገበያያ፣ ቤት መከራየት እና ማከራየት የሚችሉበት ፕላትፎርም*`,
+*ስሙኒ ዴላላ — የኢትዮጵያ የታመነ የቤትና ዕቃ መገበያያ አገልግሎት*`,
     userTypeSelection: "ዛሬ ምን ማድረግ ይፈልጋሉ?",
     buyer: "🛍️ ለመግዛት / ለመከራየት እፈልጋለሁ",
     seller: "💰 ለመሸጥ / ለማከራየት እፈልጋለሁ",
@@ -243,10 +245,10 @@ Please select your preferred language to continue:`,
     changeLanguageButton: "🌐 ቋንቋ ቀይር",
     downloadApp: "📱 ሙሉ አገልግሎት ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
     downloadAppButton: "📱 መተግበሪያ ያውርዱ",
-    returningWelcome: "👋 እንኳን ወደ ስሙኒ ደላላ በደህና ተመለሱ።\n\nከታች ባለው ምናሌ ቤትና ዕቃ ዝርዝሮችን ይመልከቱ፣ በአካባቢ ይፈልጉ፣ ንብረት ወይም ዕቃ ይለጥፉ፣ ፍላጎትዎን ያስገቡ ወይም ድጋፍ ይጠይቁ።",
-    languageChanged: "✅ ቋንቋ ተቀይሯል። ከታች ያለው ምናሌ አዲሱን ቋንቋዎን ያ reflect ያደርጋል።",
+    returningWelcome: "👋 እንኳን ወደ ስሙኒ ደላላ በደህና ተመለሱ।\n\nከታች ባለው menu ቤትና ዕቃ ዝርዝሮችን ይመልከቱ፣ በአካባቢ ይፈልጉ፣ ንብረት ወይም ዕቃ ይለጥፉ፣ ፍላጎትዎን ያስገቡ ወይም ድጋፍ ይጠይቁ።",
+    languageChanged: "✅ ቋንቋ ተቀይሯል። ከታች ያለው menu አዲሱን ቋንቋዎን ያሳያል።",
     selectLanguageFirst: "እባክዎ በ /start ቋንቋዎን ይምረጡ",
-    mainMenuTitle: "🏠 *ዋና ምናሌ*\n\nከታች ካለው ቁልፍ ይምረጡ፣ ወይም ፈጣን አማራጭ ይጫኑ:",
+    mainMenuTitle: "🏠 *ዋና Menu*\n\nከታች ካለው ቁልፍ ይምረጡ፣ ወይም ፈጣን አማራጭ ይጫኑ:",
     postSellerMenuPrompt: "ምን ልትለጥፉ ይፈልጋሉ?",
     browseEmpty: "በዚህ ጊዜ የተፈቀዱ ልጥፎች የሉም። እባክዎ በኋላ ይመለሱ።",
     browseEnd: "ገጽ {current}/{total} መጨረሻ። ለመንቀሳቀስ ከታች ያሉትን ቁልፎች ይጠቀሙ።",
@@ -260,12 +262,14 @@ Please select your preferred language to continue:`,
     failedSearch: "❌ ፍለጋ አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
     failedBrowse: "ልጥፎችን መጫን አልተሳካም። እባክዎ በኋላ ይሞክሩ።",
     failedListings: "❌ ልጥፎችዎን ማግኘት አልተቻለም።",
+    noListings: "📋 እስካሁን ምንም ልጥፎች የሉም።\n\nበቤት ወይም ዕቃ ለመለጠፍ ከታች ያለውን menu ይጠቀሙ።",
+    listingNotFound: "❌ ልጥፉ አልተገኘም ወይም ከአሁን በኋላ የለም።",
     locationTooShort: "❌ አካባቢው በጣም አጭር ነው። ትክክለኛ አካባቢ ያስገቡ።",
     yourListingsTitle: "📋 *የእርስዎ ልጥፎች*",
     yourListingsBody: "ልጥፎችዎን ለማየት ተመሳሳይ ስልክ ቁጥር በመጠቀም የሞባይል መተግበሪያችንን ይጠቀሙ።\nወይም የቴሌግራም ተጠቃሚ ስምዎ @{username} በመጠቀም ድጋፍ ያግኙ።",
     supportTicketHeader: "አዲስ የቴሌግራም ድጋፍ ጥያቄ",
     supportMessage:
-      "☎️ የስሙኒ ደላላ ድጋፍ\n\nማንኛውም ችግር ካጋጠምዎ ይደውሉልን፦\n+251 99 367 6861\n+251 93 663 9391\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ልጥፍ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ያካትቱ።",
+      "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
     supportReceived: "✅ መልዕክትዎ ወደ ድጋፍ ቡድን ተልኳል። በቅርቡ እንከታተላለን።",
     supportUnavailable:
       "ድጋፍ እስካሁን አልተገናኘም። እባክዎ በኋላ ይሞክሩ ወይም የሞባይል መተግበሪያውን ይጠቀሙ።",
@@ -274,93 +278,93 @@ Please select your preferred language to continue:`,
     requirementTitle:
       '📝 ደረጃ 1/5: የፍላጎት ርዕስ\n\nእባክዎ የፍላጎትዎን ርዕስ ያስገቡ።\nለምሳሌ: "በቦሌ 2 አልጋ አፓርትመንት ፈልጋለሁ"',
     requirementDescription:
-      "📝 ደረጃ 2/5: መግለጫ\n\nምን ፈለጉ እንደምን ይግለጹ።\ስለ በጀትዎ፣ የሚፈልጉት አካባቢ፣ አማራጮች ወዘተ ይጨምሩ።",
+      "📝 ደረጃ 2/5: መግለጫ\n\nምን እንደሚፈልጉ በዝርዝር ይግለጹ።\nስለ በጀትዎ፣ የሚፈልጉት አካባቢ፣ እና የሚፈልጉት ነገር ይጻፉ።",
     requirementBudget: '📝 ደረጃ 3/5: በጀት\n\nእባክዎ በጀትዎን በብር ያስገቡ።\nለምሳሌ: "5000"',
     requirementLocation:
       '📝 ደረጃ 4/5: የሚፈልጉት አካባቢ\n\nእባክዎ የሚፈልጉት አካባቢ ያስገቡ።\nለምሳሌ: "አዲስ አበባ, ቦሌ"',
     requirementContact:
-      '📝 ደረጃ 5/5: የአገናኝ ስልክ\n\nእባክዎ የአገናኝ ስልክ ቁጥር ያስገቡ።\nለምሳሌ: "+251911000000"',
+      '📝 ደረጃ 5/5: ስልክ ቁጥር\n\nእባክዎ ስልክ ቁጥርዎን ያስገቡ።\nለምሳሌ: "+251911000000"',
     requirementSuccess:
-      "✅ ፍላጎትዎ በተሳካ ሁኔታ ተላክቷል!\n\nአስተዳዳሪ የክፍያዎን ማረጋገጫ ከፈቀደ በኋላ ፍላጎትዎ ወደ ቻናላችን ይለጠፋል። ሻጮች/አከራዮች ፍላጎትዎን ተመልከተው የሚዛመድ እቃ ወይም ንብረት ካላቸው ያገናኙዎታል።\n\nየሚገኙትን ዝርዝሮች ለማየት የሞባይል አፕሊካችንን መጠቀም ይችላሉ።",
+      "✅ ፍላጎትዎ በተሳካ ሁኔታ ተላክቷል!\n\nባለሙያ የክፍያ ማስረጃዎን ከፈቀደ በኋላ ፍላጎትዎ ወደ ቻናላችን ይለጠፋል። ሻጮች/አከራዮች ፍላጎትዎን ተመልክተው የሚመጥን ቤት ወይም ዕቃ ካላቸው ያነጋግሯችኋል።\n\nማስታወቂያዎችን ለማየት የሞባይል አፕሊካችንን መጠቀም ይችላሉ።",
     start:
       "🏠 እንኳን ደላላ ደረጃ!\n\n/start - አዲስ ንብረት መለጠፍ ይጀምሩ\n/Help - እርዳታ ያግኙ\n/mylistings - የእርስዎ ቤቶችን ይመልከቱ",
-    help: `📚 እርዳት
+    help: `📚 እርዳታ
 
 /start - ጀምር
-/mylistings - የእርስዎ ለጥፎችን ይመልከቱ
-/cancel - የአሁኑን ሂደት ይሰርዙ
+/mylistings - የእርስዎ ማስታወቂያዎችን ይመልከቱ
+/cancel - ይሰርዙ
 
-📝 የመስራት ሂደት:
-1. የሚፈልጉት ነገር ርዕስ
-2. መግለጫ/ስለሚፈልጉት ነገር ማብራሪያ
-3. የፍላጎት ዓይነት (ኪራይ/ሽያጭ)
-4. የቤቱ/የሚፈልጉ ዕቃ ዓይነት
+📝 እንዴት እንደሚሰራ:
+1. ርዕስ ይጻፉ
+2. መግለጫ ይጻፉ
+3. ዓይነት ይምረጡ (ኪራይ/ሽያጭ)
+4. የቤቱ ወይም ዕቃ ዓይነት
 5. ዋጋ (ብር)
 6. አካባቢ (ከተማ, ክፍለ ከተማ)
 7. ስልክ ቁጥር
-8. ምስሎችን ያስገቡ
-9. የክፍያ ማረጋገጫ ያስገቡ(Screenshot)
-10. ለማረጋገጫ ይለጥፉ
+8. ምስሎችን ይላኩ
+9. የክፍያ ማስረጃ ይላኩ
+10. ይለጥፉ
 
-💰 ክፍያ: 20 ብር የመለጥፍያ ክፍያ`,
+💰 ክፍያ: 20 ብር`,
     step1_title:
-      '📝 ደረጃ 1/10: የቤቱ/የሚፈልጉት ዕቃ ርዕስ\n\nእባክዎ የቤትዎን//የሚፈልጉት ዕቃ ርዕስ ያስገቡ።\nለምሳሌ: "በቦሌ ያለ ዘመናዊ 2 አልጋ አፓርትመንት"\n\nለመተው /cancel ይጻፉ።',
+      '📝 ደረጃ 1/10: ርዕስ\n\nእባክዎ የቤትዎን ወይም የሚሸጡትን ዕቃ ርዕስ ይጻፉ።\nለምሳሌ: "በቦሌ ያለ ዘመናዊ 2 መኝታ አፓርትመንት"\n\nለመሰረዝ /cancel ይጻፉ።',
     step2_description:
-      "📝 ደረጃ 2/10: መግለጫ\n\nእባክዎ ቤትዎን/ፍላጎትዎን ይግለጹ።\ስለ አማራጮች፣ በአቅራብያ ያሉ አገልግሎቶች ወዘተ ይጨምሩ።",
-    step3_listingType: "📝 ደረጃ 3/10: የዝርዝር አይነት\n\nይህ የዝርዝር አይነት ምንድን ነው?",
+      "📝 ደረጃ 2/10: መግለጫ\n\nእባክዎ ቤትዎን ወይም ዕቃዎን ይግለጹ።\nስለ ሁኔታው፣ በአካባቢው ያለው እና ሌሎች መረጃዎችን ይጻፉ።",
+    step3_listingType: "📝 ደረጃ 3/10: ዓይነት\n\nምን ማድረግ ይፈልጋሉ?",
     requirementListingType:
       "📝 ደረጃ 1/5: የፍላጎት አይነት\n\nለመከራየት ወይስ ለመግዛት ነው የሚፈልጉት?",
     step4_propertyType:
-      "📝 ደረጃ 4/10: የቤቱ/የሚፈልጉት ዕቃ ዓይነት \n\nየቤትዎን/የሚፈልጉት ዕቃ ዓይነት ይምረጡ:",
-    step5_price: '📝 ደረጃ 5/10: ዋጋ\n\nእባክዎ ዋጋውን በብር ያስገቡ።\nለምሳሌ: "5000"',
+      "📝 ደረጃ 4/10: የቤት ዓይነት\n\nየቤትዎን ዓይነት ይምረጡ:",
+    step5_price: '📝 ደረጃ 5/10: ዋጋ\n\nእባክዎ ዋጋውን በብር ይጻፉ።\nለምሳሌ: "5000"',
     step6_location:
-      '📝 ደረጃ 6/10: አካባቢ\n\nእባክዎ የቤትዎን/የሚፈልጉትን ዕቃ አካባቢ በዚህ ቅጽል ያስገቡ:\nከተማ, ክፍለ ከተማ\n\nለምሳሌ: "አዲስ አበባ, ቦሌ"',
+      '📝 ደረጃ 6/10: አካባቢ\n\nእባክዎ አካባቢውን በዚህ መልክ ይጻፉ:\nከተማ, ክፍለ ከተማ\n\nለምሳሌ: "አዲስ አበባ, ቦሌ"',
     step7_phone:
-      '📝 ደረጃ 7/10: የአገናኝ ስልክ\n\nእባክዎ  ስልክ ቁጥር ያስገቡ።\nለምሳሌ: "+251911000000"',
+      '📝 ደረጃ 7/10: ስልክ ቁጥር\n\nእባክዎ ስልክ ቁጥር ይጻፉ።\nለምሳሌ: "+251911000000"',
     step8_images:
-      '📝 ደረጃ 8/10: ምስሎች\n\nእባክዎ የቤቱን/የሚፈልጉትን ዕቃ ምስሎች (እስከ 10 ምስሎች) ያስገቡ።\nምስሎችን አንድ በአንድ ያስገቡ።\n\nአስገብተዉ ሲጨሪሱ "ጨረስኩ" ወይም "ሰርዝ" ይጫኑ።',
+      '📝 ደረጃ 8/10: ምስሎች\n\nእባክዎ የቤቱን ወይም ዕቃዎን ምስሎች (እስከ 10 ምስሎች) ይላኩ።\nምስሎችን አንድ በአንድ ይላኩ።\n\nጨርሰው "ምስሎች ጨርሻለሁ" ወይም "ሰርዝ" ይጫኑ።',
     step9_paymentProof:
-      "📝 ደረጃ 9/10: የክፍያ ማረጋገጫ\n\nእባክዎ የክፍያውን (20 ብር) ማረጋገጫ ምስል ያስገቡ።\n\nየክፍያ ማረጋገጫ ምስልን አሁን ይላኩ።",
+      "📝 ደረጃ 9/10: የክፍያ ማስረጃ\n\nእባክዎ የክፍያውን (20 ብር) ማስረጃ ምስል ይላኩ።\n\nየክፍያ ማስረጃ ምስልን አሁን ይላኩ።",
     step10_summary: "✅ ማጠቃለያ",
-    paymentRequired: "💳 የሚፈለገው ክፍያ: 20 ብር\n\nለመለጠፍ ክፍያውን ወደ:",
-    afterPayment: "ክፍያ ከጨረሱ ማረጋገጫ ምስልን ወደ አስተዳዳሪ ለማረጋገጫ ይላኩ።",
+    paymentRequired: "💳 የሚፈለገው ክፍያ: 20 ብር\n\nክፍያውን ወደ:",
+    afterPayment: "ክፍያ ከጨረሱ ማስረጃውን ይላኩ።",
     afterPaymentProof:
-      '✅ የክፍያ ማረጋገጫ ተቀብሏል። ፍላጎትዎን ወዴ ስሙኒ ዴላላ ለመለጠፍ ክታች "አስገቡ" የሚለዉን ይጫኑ።',
+      '✅ የክፍያ ማስረጃ ተቀብሏል። ማስታወቂያዎን ለመለጠፍ ከታች "አስገቡ" የሚለውን ይጫኑ።',
     submitSuccess:
-      "✅ ልጥፉ በተሳካ ሁኔታ ተረጋግጧል!\n\nፍላጎትዎ ተለጥፉዋል እና የክፍያ ማረጋገጫውን ለአስተዳዳሪ ማረጋገጫ እየጠበቀ ነው።\n\nከተፈቀደ በኋላ ቤትዎ ወደ @semunidelala ይለጠፋል",
+      "✅ ማስታወቂያዎ በተሳካ ሁኔታ ተልኳል!\n\nማስታወቂያዎ ተልኳል እና የክፍያ ማስረጃውን ባለሙያ እየመረመረ ነው።\n\nከተፈቀደ በኋላ ማስታወቂያዎ ወደ @semunidelala ይለጠፋል",
     rent: "🏠 ለመከራየት",
     buy: "💰 ለመግዛት",
     requirementRent: "🏠 ለመከራየት",
     requirementBuy: "💰 ለመግዛት",
-    doneImages: "✅ ምስሎችን አስገበቼ ጨረስኩኝ",
-    skipImages: "⏭️ ምስል ሳያስገቡ ይለፉ",
-    submit: "✅ አስገቡ",
+    doneImages: "✅ ምስሎች ጨርሻለሁ",
+    skipImages: "⏭️ ያለ ምስል ቀጥል",
+    submit: "✅ ላክ",
     cancel: "❌ ሰርዝ",
-    titleTooShort: "❌ ርዕሱ በጣም አጭር ነው። እባክዎ ቢያንስ 5 ፊደሎች ያስገቡ።",
-    descriptionTooShort: "❌ መግለጫው በጣም አጭር ነው። እባክዎ ቢያንስ 20 ፊደሎች ያስገቡ።",
-    invalidPrice: "❌ ልክ ያልሆነ ዋጋ። እባክዎ ትክክለኛ መጠን ያስገቡ (ቢያንስ 100 ብር)።",
-    invalidLocation: "❌ ልክ ያልሆነ ፎርማት። እባክዎ የሚከተለውን ይጠቀሙ፦ ከተማ፣ ክፍለ ከተማ።",
-    invalidPhone: "❌ ስልክ ቁጥሩ ልክ አይደለም። እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ።",
-    maxImages: '❌ ከ10 በላይ ምስሎች አይፈቀዱም። ለመቀጠል "ምስሎችን ጨርሰናል" የሚለውን ጠቅ ያድርጉ።',
-    imageUploaded: '✅ ምስሉ ተሰቅሏል። ተጨማሪ ይላኩ ወይም "ምስሎቹን ጨርሰዋል" የሚለውን ጠቅ ያድርጉ።',
+    titleTooShort: "❌ ርዕሱ በጣም አጭር ነው። እባክዎ ቢያንስ 5 ፊደላት ይጻፉ።",
+    descriptionTooShort: "❌ መግለጫው በጣም አጭር ነው። እባክዎ ቢያንስ 20 ቃላት ይጻፉ።",
+    invalidPrice: "❌ ዋጋው ትክክል አይደለም። እባክዎ ትክክለኛ ዋጋ ይጻፉ (ቢያንስ 100 ብር)።",
+    invalidLocation: "❌ አካባቢው ትክክል አይደለም። እባክዎ በዚህ መልክ ይጻፉ: ከተማ, ክፍለ ከተማ።",
+    invalidPhone: "❌ ስልክ ቁጥሩ ትክክል አይደለም። እባክዎ ትክክለኛ ስልክ ቁጥር ይጻፉ።",
+    maxImages: '❌ ከ10 በላይ ምስሎች አይፈቀዱም። ለመቀጠል "ምስሎች ጨርሻለሁ" የሚለውን ይጫኑ።',
+    imageUploaded: '✅ ምስሉ ገብቷል። ተጨማሪ ይላኩ ወይም "ምስሎች ጨርሻለሁ" የሚለውን ይጫኑ።',
     paymentProofReceived:
-      "✅ የክፍያ ማረጋገጫ ተቀብሏል። ቤትዎ አሁን ለአስተዳዳሪ ማረጋገጫ እየጠበቀ ነው።",
-    submissionCancelled: "❌ የንብረት መለጠፍ ተሰርዟል።",
-    failedSubmit: "❌ ቤቱን ማስገባት አልተቻለም። እባክዎ እንደገና ይሞክሩ ወይም ድጋፍ ይጠይቁ።",
+      "✅ የክፍያ ማስረጃ ተቀብለናል። ማስታወቂያዎ አሁን ባለሙያ እየመረመረው ነው።",
+    submissionCancelled: "❌ ማስታወቂያው ተሰርዟል።",
+    failedSubmit: "❌ ማስታወቂያውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ ወይም ድጋፍ ይጠይቁ።",
     product: {
-      postTitle: "📝 *ልጥፍዎን ያስገቡ*",
-      chooseListingType: "ምን አይነት ልጥፍ መለጠፍ ይፈልጋሉ?",
-      propertyOption: "ንብረት",
-      productOption: "የሚሸጥ ዕቃ",
-      selectCategory: "የዕቃውን ምድብ ይምረጡ:",
-      selectSubcategory: "ንዑስ ምድብ ይምረጡ:",
-      skipSubcategory: "ንዑስ ምድብ ይዝለሉ",
-      noCategories: "⚠️ ይህ አገልግሎት በአሁኑ ጊዜ እየተዘጋጀ ነው። እባክዎ በኋላ ይሞክሩ ወይም ድጋፍ ያግኙ።",
-      requiredCategoryMissing: "⚠️ ይህ ምድብ ጊዜያዊ ስላልተገኘ። እባክዎ በኋላ ይሞክሩ ወይም ድጋፍ ያግኙ።",
-      stepTitle: "ደረጃ 1/9: የዕቃው ርዕስ\nለምሳሌ: iPhone 13 Pro Max",
-      stepDescription: "ደረጃ 2/9: መግለጫ\nዋና ዝርዝሮችን፣ ተጨማሪ እቃዎችን እና ጉድለቶችን ያካትቱ።",
+      postTitle: "📝 *ማስታወቂያዎን ይለጥፉ*",
+      chooseListingType: "ምን ማስታወቂያ መለጠፍ ይፈልጋሉ?",
+      propertyOption: "ቤት",
+      productOption: "ዕቃ",
+      selectCategory: "የዕቃውን ዓይነት ይምረጡ:",
+      selectSubcategory: "ንዑስ ዓይነት ይምረጡ:",
+      skipSubcategory: "ይዝለሉ",
+      noCategories: "⚠️ ይህ አገልግሎት አሁን እየተዘጋጀ ነው። እባክዎ በኋላ ይሞክሩ።",
+      requiredCategoryMissing: "⚠️ ይህ ዓይነት አሁን የለም። እባክዎ በኋላ ይሞክሩ።",
+      stepTitle: "ደረጃ 1/9: ርዕስ\nለምሳሌ: iPhone 13 Pro Max",
+      stepDescription: "ደረጃ 2/9: መግለጫ\nዝርዝር መረጃ፣ ተጨማሪዎች እና ችግሮች ካሉ ይጻፉ።",
       stepPrice: "ደረጃ 3/9: ዋጋ በብር",
-      stepLocation: "ደረጃ 4/9: አካባቢ\nበዚህ ቅርጸት ይጠቀሙ: ከተማ, ክፍለ ከተማ",
+      stepLocation: "ደረጃ 4/9: አካባቢ\nበዚህ መልክ: ከተማ, ክፍለ ከተማ",
       stepBrand: "ደረጃ 5/9: ብራንድ\nለመዝለል \"-\" ይላኩ።",
       stepModel: "ደረጃ 6/9: ሞዴል\nለመዝለል \"-\" ይላኩ።",
       stepYear: "ደረጃ 7/9: ዓመት\nለመዝለል \"-\" ይላኩ።",
@@ -369,9 +373,9 @@ Please select your preferred language to continue:`,
       conditionNew: "አዲስ",
       conditionUsed: "ያገለገለ",
       conditionRefurbished: "የታደሰ",
-      stepPhone: "ደረጃ 8/9: የአገናኝ ስልክ\nለምሳሌ: +251911000000",
+      stepPhone: "ደረጃ 8/9: ስልክ ቁጥር\nለምሳሌ: +251911000000",
       stepImages: "ደረጃ 9/9: የዕቃውን ምስሎች ይላኩ።",
-      summaryTitle: "የዕቃ ልጥፍ ማጠቃለያ",
+      summaryTitle: "የዕቃ ማስታወቂያ ማጠቃለያ",
       title: "ርዕስ",
       description: "መግለጫ",
       price: "ዋጋ",
@@ -381,16 +385,16 @@ Please select your preferred language to continue:`,
       year: "ዓመት",
       condition: "ሁኔታ",
       images: "ምስሎች",
-      paymentProof: "የክፍያ ማረጋገጫ",
-      uploaded: "ተሰቅሏል",
-      notUploaded: "አልተሰቀለም",
-      uploadedImages: "ተሰቅለዋል",
+      paymentProof: "የክፍያ ማስረጃ",
+      uploaded: "ገብቷል",
+      notUploaded: "አልገባም",
+      uploadedImages: "ገብተዋል",
       notAvailable: "የለም",
-      submitQuestion: "ይህን ዕቃ ለአስተዳዳሪ ማረጋገጫ ልናስገባው?",
-      submitted: "የዕቃዎ የክፍያ ማረጋገጫ ተላክቷል፣ የአስተዳዳሪ ማረጋገጫ እየጠበቀ ነው።",
-      approved: "የዕቃዎ ክፍያ ተረጋግጧል፣ ልጥፉም አሁን ታትሟል።",
-      rejected: "የዕቃዎ የክፍያ ማረጋገጫ ውድቅ ተደርጓል። እባክዎ ድጋፍ ያነጋግሩ ወይም እንደገና ያስገቡ።",
-      failedSubmit: "የዕቃ ልጥፉን ማስገባት አልተቻለም። እባክዎ እንደገና ይሞክሩ ወይም ድጋፍ ይጠይቁ።",
+      submitQuestion: "ይህን ዕቃ ባለሙያ እንዲመረምር ልንልክ?",
+      submitted: "የዕቃዎ የክፍያ ማስረጃ ተልኳል፣ ባለሙያ እየመረመረ ነው።",
+      approved: "የዕቃዎ ክፍያ ተረጋግጧል፣ ማስታወቂያዎም አሁን ታትሟል።",
+      rejected: "የዕቃዎ የክፍያ ማስረጃ ውድቅ ሆኗል። እባክዎ ድጋፍ ያነጋግሩ ወይም እንደገና ይላኩ።",
+      failedSubmit: "የዕቃ ማስታወቂያውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ ወይም ድጋፍ ይጠይቁ።",
     },
   },
   or: {
@@ -453,12 +457,14 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     failedSearch: "❌ Barbaachuu hin milkoofne. Irra deebi'i yaali.",
     failedBrowse: "Maxxansota fe'uu hin dandeenye. Booda irra deebi'i.",
     failedListings: "❌ Maxxansota kee argachuu hin dandeenye.",
+    noListings: "📋 Ammaatti maxxansaa kamiyyuu hin qabdu.\n\nMaxxansi qabeenya ykn meeshaa maxxansuuf menu armaan gadii fayyadami.",
+    listingNotFound: "❌ Maxxansi hin argamne ykn siʼachi hin jiru.",
     locationTooShort: "❌ Bakki gabaabaa dha. Bakka sirrii galchi.",
     yourListingsTitle: "📋 *Maxxansota Kee*",
     yourListingsBody: "Maxxansota kee ilaaluuf lakkoofsa bilbilaa walfakkaataa fayyadamuun app mobile keenya fayyadami.\nYkn deeggarsaaf maqaa Telegram kee @{username} fayyadami.",
     supportTicketHeader: "Gaaffii deeggarsa Telegram haaraa",
     supportMessage:
-      "☎️ Deeggarsa SemuniDelala\n\nRakkoon yoo si mudate nuuf bilbili:\n+251 99 367 6861\n+251 93 663 9391\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte dabali.",
+      "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
     supportReceived: "✅ Ergaan kee gara deeggarsaatti ergameera. Yeroo dhiyootti si hordofna.",
     supportUnavailable:
       "Deeggarsi ammatti walitti hin hidhamne. Maaloo boodarra yaali ykn app mobile fayyadami.",

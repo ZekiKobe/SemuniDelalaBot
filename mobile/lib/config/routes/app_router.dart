@@ -34,7 +34,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Skip splash on subsequent navigations (e.g., locale changes)
       if (isSplash && !_isFirstNavigation) {
         _isFirstNavigation = false;
-        return isAuth ? '/' : '/login';
+        return '/';
       }
       
       if (isSplash) {
@@ -79,6 +79,6 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 bool _requiresAuth(String path) {
-  const protected = ['/favorites', '/profile', '/post-selection', '/create-property', '/create-requirement', '/my-listings', '/admin'];
+  const protected = ['/my-listings', '/admin', '/post-selection', '/create-property', '/create-requirement'];
   return protected.any((p) => path.startsWith(p)) || path.startsWith('/payment');
 }

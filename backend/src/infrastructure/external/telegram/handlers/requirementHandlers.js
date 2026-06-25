@@ -46,8 +46,8 @@ module.exports = {
       lang: lang
     });
     this.tempPropertyData.set(chatId, {
-      requirement: {},
-      images: []
+      requirement: {}
+      // No images array - requirements don't need photos
     });
 
     const keyboard = {
@@ -125,18 +125,9 @@ module.exports = {
           return;
         }
         requirementData.requirement.contactPhone = text.replace(/\s/g, '');
-        // Move to optional images step (match seller flow) before requesting payment
-        state.step = 'images';
-        this.userStates.set(chatId, state);
-
-        const imageKeyboard = {
-          inline_keyboard: [
-            [{ text: msgs.doneImages, callback_data: 'images_done' }],
-            [{ text: msgs.skipImages, callback_data: 'images_skip' }]
-          ]
-        };
-        const imagePrompt = await this.bot.sendMessage(chatId, msgs.step8_images, { reply_markup: imageKeyboard });
-        requirementData.imagePromptMessageId = imagePrompt.message_id;
+        // Skip images for requirements - buyers don't have photos of properties they're looking for
+        // Go directly to submit requirement (which will request payment proof)
+        await this.submitRequirementToDatabase(chatId, requirementData, lang);
         break;
 
       default:
@@ -171,7 +162,7 @@ module.exports = {
         userId: user._id,
         requirementId,
         preferredLanguage: normalizeDbLang(lang),
-        images: data.images || [],
+        // No images - requirements don't need photos
       });
 
       // Also store an admin-facing temp entry to allow admins to find the submission if needed
@@ -289,15 +280,8 @@ ${msgs.downloadApp}
         paymentProof: data.paymentProof || undefined,
       });
 
-      const images = await this.persistTelegramImages(
-        reqDoc._id,
-        data.images || [],
-        'requirements'
-      );
-      if (images.length > 0) {
-        reqDoc = await requirementRepository.update(reqDoc._id, { images });
-      }
-
+      // Requirements don't have images - skip image persistence
+      
       // Clear temp state
       this.userStates.delete(chatId);
       this.tempPropertyData.delete(chatId);
