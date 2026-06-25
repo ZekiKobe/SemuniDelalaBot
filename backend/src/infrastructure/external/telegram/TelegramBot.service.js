@@ -226,12 +226,14 @@ class TelegramBotService {
     this.bot.on('callback_query', async (query) => {
       const chatId = query?.message?.chat?.id;
       const data = typeof query.data === 'string' ? query.data : '';
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
 
       if (!chatId) {
         logger.error('Telegram callback query missing chat id', { query });
         return;
       }
+
+      // Ensure we have the latest language from database instead of relying on in-memory cache
+      const lang = await this.ensureUserContext(chatId, query.from);
 
       const runCallback = async () => {
         if (data.startsWith('lang_')) {
