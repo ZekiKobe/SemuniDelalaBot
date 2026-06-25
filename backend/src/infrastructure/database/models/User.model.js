@@ -13,8 +13,8 @@ const userSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: [true, 'Phone number is required'],
       unique: true,
+      sparse: true,
       trim: true,
     },
     email: {
@@ -26,9 +26,24 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minlength: 6,
       select: false,
+    },
+    telegramId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    photoUrl: {
+      type: String,
+      trim: true,
     },
     role: {
       type: String,
@@ -73,9 +88,10 @@ const userSchema = new mongoose.Schema(
 
 userSchema.index({ role: 1, status: 1 });
 userSchema.index({ createdAt: -1 });
+userSchema.index({ telegramId: 1 }, { sparse: true });
 
 userSchema.pre('save', async function hashPassword(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });

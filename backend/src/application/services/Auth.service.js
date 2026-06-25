@@ -216,6 +216,78 @@ class AuthService {
 
     return { message: 'Password reset successfully' };
   }
+
+  verifyTelegramAuth(telegramData, botToken) {
+    const checkHash = telegramData.hash;
+    const dataCheckArr = [];
+    
+    Object.keys(telegramData).forEach(key => {
+      if (key !== 'hash') {
+        dataCheckArr.push(`${key}=${telegramData[key]}`);
+      }
+    });
+    
+    dataCheckArr.sort();
+    const dataCheckString = dataCheckArr.join('\n');
+    
+    const secretKey = crypto.createHash('sha256').update(botToken).digest();
+    const hmac = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+    
+    const authDate = parseInt(telegramData.auth_date);
+    const now = Math.floor(Date.now() / 1000);
+    const maxAge = 86400;
+    
+    if (now - authDate > maxAge) {
+      throw new AppError('Telegram auth data is too old', 401, 'AUTH_INVALID_CREDENTIALS');
+    }
+    
+    if (hmac !== checkHash) {
+      throw new AppError('Invalid Telegram auth data', 401, 'AUTH_INVALID_CREDENTIALS');
+    }
+    
+    return true;
+  }
+
+  async loginWithTelegram(telegramData) {
+    const botToken = config.telegram?.botToken || process.env.TELEGRAM_BOT_TOKEN;
+    
+    if (!botToken) {
+      throw new AppError('Telegram authentication not configured', 500, 'SERVER_ERROR');
+    }
+
+    this.verifyTelegramAuth(telegramData, botToken);
+
+    const telegramId = telegramData.id.toString();
+    let user = await authRepository.findByTelegramId(telegramId);
+
+    if (!user) {
+      const fullName = [telegramData.first_name, telegramData.last_name]
+        .filter(Boolean)
+        .join(' ') || 'Telegram User';
+
+      user = await authRepository.createUser({
+        fullName,
+        telegramId,
+        username: telegramData.username,
+        photoUrl: telegramData.photo_url,
+        role: UserRole.USER,
+        preferredLanguage: 'en',
+      });
+    } else {
+      await authRepository.updateUser(user._id, { lastLoginAt: new Date() });
+    }
+
+    const tokens = this.generateTokens(user._id, user.role);
+    const tokenHash = await this.hashRefreshToken(tokens.refreshToken);
+
+    await authRepository.saveRefreshToken({
+      userId: user._id,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    return { user, ...tokens };
+  }
 }
 
 module.exports = new AuthService();

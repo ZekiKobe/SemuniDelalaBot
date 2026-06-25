@@ -4,22 +4,21 @@ import 'package:go_router/go_router.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../providers/property_provider.dart';
+import '../../providers/unified_listing_provider.dart';
 import '../../widgets/bottom_nav_bar.dart';
-import '../../widgets/property_card.dart';
-import '../../widgets/search_bar_widget.dart';
-import '../../widgets/section_header.dart';
+import '../../widgets/modern_listing_card.dart';
 import '../../widgets/state_widgets.dart';
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final featured = ref.watch(featuredPropertiesProvider);
-    final newest = ref.watch(newPropertiesProvider);
-    final popular = ref.watch(popularPropertiesProvider);
-    final areas = ref.watch(popularAreasProvider);
+    final forRent = ref.watch(forRentListingsProvider);
+    final forSale = ref.watch(forSaleListingsProvider);
+    final marketplace = ref.watch(marketplaceListingsProvider);
+    final featured = ref.watch(featuredUnifiedListingsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -27,61 +26,75 @@ class HomeScreen extends ConsumerWidget {
         child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
-            ref.invalidate(featuredPropertiesProvider);
-            ref.invalidate(newPropertiesProvider);
-            ref.invalidate(popularPropertiesProvider);
-            ref.invalidate(popularAreasProvider);
+            ref.invalidate(forRentListingsProvider);
+            ref.invalidate(forSaleListingsProvider);
+            ref.invalidate(marketplaceListingsProvider);
+            ref.invalidate(featuredUnifiedListingsProvider);
           },
           child: CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(child: _HomeHeader(onPostTap: () => context.push('/post-selection'))),
-              const SliverToBoxAdapter(child: SizedBox(height: 20)),
-              const SliverToBoxAdapter(child: SearchBarWidget()),
+              // Modern Header
+              SliverToBoxAdapter(child: _ModernHeader()),
               const SliverToBoxAdapter(child: SizedBox(height: 8)),
-              SliverToBoxAdapter(child: _HeroBanner()),
+              
+              // Search Bar
+              SliverToBoxAdapter(child: _ModernSearchBar()),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              
+              // Category Quick Access
+              SliverToBoxAdapter(child: _CategoryQuickAccess()),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              
+              // Featured Section
               SliverToBoxAdapter(
-                child: SectionHeader(
-                  title: l10n.featured,
-                  actionLabel: l10n.seeAll,
-                  onAction: () => context.push('/search'),
+                child: _ModernSectionHeader(
+                  title: 'Featured',
+                  onSeeAll: () {
+                    // TODO: Navigate to all featured
+                  },
                 ),
               ),
-              SliverToBoxAdapter(child: _HorizontalList(asyncValue: featured)),
+              SliverToBoxAdapter(child: _FeaturedSection(asyncValue: featured)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              
+              // For Rent Section
               SliverToBoxAdapter(
-                child: SectionHeader(
-                  title: l10n.newListings,
-                  actionLabel: l10n.seeAll,
-                  onAction: () => context.push('/search'),
+                child: _ModernSectionHeader(
+                  title: 'For Rent',
+                  subtitle: 'Find your perfect home',
+                  onSeeAll: () {
+                    // TODO: Navigate to all rentals
+                  },
                 ),
               ),
-              SliverToBoxAdapter(child: _HorizontalList(asyncValue: newest)),
-              SliverToBoxAdapter(child: SectionHeader(title: l10n.mostViewed)),
-              SliverToBoxAdapter(child: _HorizontalList(asyncValue: popular)),
-              SliverToBoxAdapter(child: SectionHeader(title: l10n.popularAreas)),
+              SliverToBoxAdapter(child: _ListingSection(asyncValue: forRent)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              
+              // For Sale Section
               SliverToBoxAdapter(
-                child: areas.when(
-                  data: (areaList) => Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: areaList.map((area) {
-                        return _AreaChip(
-                          name: area.name,
-                          count: area.count,
-                          onTap: () {
-                            ref.read(searchFiltersProvider.notifier).state =
-                                SearchFilters(subCity: area.name);
-                            context.push('/search');
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  loading: () => const SizedBox(height: 48),
-                  error: (_, __) => const SizedBox(),
+                child: _ModernSectionHeader(
+                  title: 'For Sale',
+                  subtitle: 'Properties & products',
+                  onSeeAll: () {
+                    // TODO: Navigate to all sales
+                  },
                 ),
               ),
+              SliverToBoxAdapter(child: _ListingSection(asyncValue: forSale)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              
+              // Marketplace Section
+              SliverToBoxAdapter(
+                child: _ModernSectionHeader(
+                  title: 'Marketplace',
+                  subtitle: 'Latest products',
+                  onSeeAll: () {
+                    // TODO: Navigate to all marketplace
+                  },
+                ),
+              ),
+              SliverToBoxAdapter(child: _ListingSection(asyncValue: marketplace)),
+              
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),
@@ -89,52 +102,67 @@ class HomeScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: const DelalaBottomNav(currentIndex: 0),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/create-property'),
+        onPressed: () => context.push('/post-selection'),
         backgroundColor: AppColors.accent,
         foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('List Property'),
+        elevation: 6,
+        icon: const Icon(Icons.add_rounded, size: 24),
+        label: const Text('Post Listing', style: TextStyle(fontWeight: FontWeight.w600)),
       ),
     );
   }
 }
 
-class _HomeHeader extends StatelessWidget {
-  final VoidCallback onPostTap;
-  const _HomeHeader({required this.onPostTap});
-
+class _ModernHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       child: Row(
         children: [
+          // Logo with gradient
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: const Icon(Icons.home_work_rounded, color: Colors.white, size: 24),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Delala', style: Theme.of(context).textTheme.headlineMedium),
-                Text('Find your home in Ethiopia', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  'Delala',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                Text(
+                  'Find your home in Ethiopia',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
               ],
             ),
           ),
           IconButton(
-            onPressed: onPostTap,
+            onPressed: () => context.push('/profile'),
             style: IconButton.styleFrom(
               backgroundColor: AppColors.surfaceMuted,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            icon: const Icon(Icons.notifications_outlined, size: 22),
+            icon: const Icon(Icons.person_outline, size: 22),
           ),
         ],
       ),
@@ -142,100 +170,35 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-class _HeroBanner extends StatelessWidget {
+class _ModernSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      padding: const EdgeInsets.all(24),
-      decoration: AppDecorations.heroCard(),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    '🇪🇹 Made for Ethiopia',
-                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Discover Your\nPerfect Home',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        height: 1.2,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Browse rentals or list your own property',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.75),
-                      ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(Icons.apartment_rounded, color: Colors.white, size: 40),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AreaChip extends StatelessWidget {
-  final String name;
-  final int count;
-  final VoidCallback onTap;
-
-  const _AreaChip({required this.name, required this.count, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppDecorations.radiusSm),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppDecorations.radiusSm),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap: () => context.push('/search'),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDecorations.radiusSm),
-            border: Border.all(color: AppColors.border),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.location_on_outlined, size: 16, color: AppColors.accent),
-              const SizedBox(width: 6),
-              Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$count',
-                  style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600),
-                ),
+              Icon(Icons.search_rounded, color: AppColors.textMuted, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'Search properties, products...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textMuted,
+                    ),
               ),
             ],
           ),
@@ -245,39 +208,283 @@ class _AreaChip extends StatelessWidget {
   }
 }
 
-class _HorizontalList extends StatelessWidget {
+class _CategoryQuickAccess extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          _CategoryChip(
+            icon: Icons.home_work_rounded,
+            label: 'Rentals',
+            count: null,
+            onTap: () {
+              // TODO: Navigate to rent
+            },
+          ),
+          const SizedBox(width: 12),
+          _CategoryChip(
+            icon: Icons.apartment_rounded,
+            label: 'Buy Property',
+            count: null,
+            onTap: () {
+              // TODO: Navigate to sale
+            },
+          ),
+          const SizedBox(width: 12),
+          _CategoryChip(
+            icon: Icons.storefront_rounded,
+            label: 'Marketplace',
+            count: null,
+            onTap: () {
+              // TODO: Navigate to marketplace
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int? count;
+  final VoidCallback onTap;
+
+  const _CategoryChip({
+    required this.icon,
+    required this.label,
+    this.count,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              if (count != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    count.toString(),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ModernSectionHeader extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onSeeAll;
+
+  const _ModernSectionHeader({
+    required this.title,
+    this.subtitle,
+    this.onSeeAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                ),
+              ],
+            ],
+          ),
+          if (onSeeAll != null)
+            TextButton(
+              onPressed: onSeeAll,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'See all',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primary),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedSection extends StatelessWidget {
   final AsyncValue asyncValue;
-  const _HorizontalList({required this.asyncValue});
+
+  const _FeaturedSection({required this.asyncValue});
 
   @override
   Widget build(BuildContext context) {
     return asyncValue.when(
-      data: (properties) => properties.isEmpty
+      data: (listings) => listings.isEmpty
           ? const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Text('No listings available yet'),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Text('No featured listings available yet'),
             )
           : SizedBox(
-              height: 300,
+              height: 320,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: properties.length,
+                itemCount: listings.length,
                 itemBuilder: (_, i) => Padding(
-                  padding: const EdgeInsets.only(right: 14),
-                  child: PropertyCard(property: properties[i]),
+                  padding: const EdgeInsets.only(right: 16),
+                  child: ModernListingCard(
+                    listing: listings[i],
+                    width: 320,
+                    showCategory: true,
+                  ),
                 ),
               ),
             ),
       loading: () => SizedBox(
-        height: 300,
+        height: 320,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: 3,
           itemBuilder: (_, __) => const Padding(
-            padding: EdgeInsets.only(right: 14),
-            child: PropertyCardSkeleton(),
+            padding: EdgeInsets.only(right: 16),
+            child: ModernListingCardSkeleton(width: 320),
+          ),
+        ),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: ErrorState(message: e.toString()),
+      ),
+    );
+  }
+}
+
+class _ListingSection extends StatelessWidget {
+  final AsyncValue asyncValue;
+
+  const _ListingSection({required this.asyncValue});
+
+  @override
+  Widget build(BuildContext context) {
+    return asyncValue.when(
+      data: (listings) => listings.isEmpty
+          ? const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Text('No listings available yet'),
+            )
+          : SizedBox(
+              height: 310,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: listings.length,
+                itemBuilder: (_, i) => Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: ModernListingCard(
+                    listing: listings[i],
+                    width: 300,
+                  ),
+                ),
+              ),
+            ),
+      loading: () => SizedBox(
+        height: 310,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: 3,
+          itemBuilder: (_, __) => const Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: ModernListingCardSkeleton(width: 300),
           ),
         ),
       ),

@@ -17,6 +17,9 @@ import '../../presentation/screens/splash/splash_screen.dart';
 import '../../presentation/screens/post_selection/post_selection_screen.dart';
 import '../../presentation/screens/requirement/create_requirement_screen.dart';
 
+// Track if this is first navigation
+bool _isFirstNavigation = true;
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
@@ -28,7 +31,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/register';
       final isSplash = state.matchedLocation == '/splash';
 
-      if (isSplash) return null;
+      // Skip splash on subsequent navigations (e.g., locale changes)
+      if (isSplash && !_isFirstNavigation) {
+        _isFirstNavigation = false;
+        return isAuth ? '/' : '/login';
+      }
+      
+      if (isSplash) {
+        _isFirstNavigation = false;
+        return null;
+      }
 
       if (!isAuth && _requiresAuth(state.matchedLocation)) {
         return '/login';

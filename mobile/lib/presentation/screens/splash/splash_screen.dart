@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/locale_provider.dart';
+
+// Track if splash has been shown in this app session
+bool _splashShown = false;
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -19,6 +24,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
+    
+    // If splash was already shown this session, skip it immediately
+    if (_splashShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final isAuth = ref.read(authProvider).isAuthenticated;
+        context.go(isAuth ? '/' : '/login');
+      });
+      _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1));
+      _fadeAnim = Tween<double>(begin: 1, end: 1).animate(_controller);
+      _scaleAnim = Tween<double>(begin: 1, end: 1).animate(_controller);
+      return;
+    }
+    
+    // First time showing splash this session
+    _splashShown = true;
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0, 0.6, curve: Curves.easeOut)),
@@ -28,7 +49,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     );
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
       final isAuth = ref.read(authProvider).isAuthenticated;
       context.go(isAuth ? '/' : '/login');

@@ -31,15 +31,23 @@ class DelalaApp extends ConsumerWidget {
         Locale('am'),
         Locale('om'),
       ],
-      localeResolutionCallback: (deviceLocale, supportedLocales) {
-        if (deviceLocale != null) {
-          for (final supported in supportedLocales) {
-            if (supported.languageCode == deviceLocale.languageCode) {
-              return supported;
-            }
-          }
+      // Provide fallback Material localizations for Oromo
+      builder: (context, child) {
+        if (locale.languageCode == 'om') {
+          // Wrap with Amharic Material localizations for widgets like RefreshIndicator
+          return Localizations.override(
+            context: context,
+            locale: const Locale('am'),
+            delegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            // Keep child which has Oromo AppLocalizations
+            child: child!,
+          );
         }
-        return supportedLocales.first;
+        return child!;
       },
     );
   }

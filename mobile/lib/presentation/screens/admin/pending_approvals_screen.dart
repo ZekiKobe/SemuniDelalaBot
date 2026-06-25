@@ -636,14 +636,41 @@ class _TelegramPostCard extends StatelessWidget {
 
   const _TelegramPostCard({required this.post});
 
+  String _getTitle() {
+    // Try to get title from different possible sources
+    if (post['propertyId'] != null) {
+      final property = post['propertyId'] as Map<String, dynamic>?;
+      if (property?['title'] != null) return property!['title'] as String;
+    }
+    if (post['listingId'] != null) {
+      final listing = post['listingId'] as Map<String, dynamic>?;
+      if (listing?['title'] != null) return listing!['title'] as String;
+    }
+    if (post['requirementId'] != null) {
+      final requirement = post['requirementId'] as Map<String, dynamic>?;
+      if (requirement?['title'] != null) return requirement!['title'] as String;
+    }
+    // Fallback: use post type or message
+    if (post['type'] != null) {
+      final type = (post['type'] as String).replaceAll('_', ' ');
+      return type[0].toUpperCase() + type.substring(1);
+    }
+    return 'Telegram Post #${post['messageId'] ?? 'Unknown'}';
+  }
+
+  IconData _getIcon() {
+    if (post['listingId'] != null) return Icons.shopping_bag_outlined;
+    if (post['requirementId'] != null) return Icons.search_rounded;
+    return Icons.home_outlined;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final property = post['propertyId'] as Map<String, dynamic>?;
     final status = post['status'] as String? ?? 'unknown';
     final postedAt = post['postedAt'] != null
-        ? DateTime.parse(post['postedAt'] as String)
+        ? DateTime.tryParse(post['postedAt'] as String)
         : post['createdAt'] != null
-            ? DateTime.parse(post['createdAt'] as String)
+            ? DateTime.tryParse(post['createdAt'] as String)
             : null;
 
     return Container(
@@ -662,7 +689,7 @@ class _TelegramPostCard extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.telegram, color: AppColors.primary),
+                  child: Icon(_getIcon(), color: AppColors.primary),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -670,14 +697,16 @@ class _TelegramPostCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        property?['title'] ?? 'Unknown Property',
+                        _getTitle(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Channel ID: ${post['channelId'] ?? 'N/A'}',
+                        'Channel ID: ${post['channelId'] ?? '@semunidelala'}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textMuted,
                             ),
@@ -720,13 +749,27 @@ class _TelegramPostCard extends StatelessWidget {
                       ? '${postedAt.day}/${postedAt.month}/${postedAt.year}'
                       : 'N/A',
                 ),
+                if (post['type'] != null) ...[
+                  const SizedBox(height: 8),
+                  _InfoRow(
+                    label: 'Type',
+                    value: (post['type'] as String).replaceAll('_', ' ').toUpperCase(),
+                  ),
+                ],
                 if (post['error'] != null) ...[
                   const SizedBox(height: 8),
-                  Text(
-                    'Error: ${post['error']}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.error,
-                        ),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Error: ${post['error']}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.error,
+                          ),
+                    ),
                   ),
                 ],
               ],

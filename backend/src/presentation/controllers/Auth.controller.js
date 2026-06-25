@@ -51,6 +51,11 @@ class AuthController {
     );
     res.json({ success: true, data: result });
   }
+
+  async loginWithTelegram(req, res) {
+    const result = await authService.loginWithTelegram(req.body);
+    res.json({ success: true, data: result });
+  }
 }
 
 module.exports = new AuthController();

@@ -70,6 +70,21 @@ class ListingController {
       meta: buildPaginationMeta(Number(page), Number(limit), total),
     });
   }
+
+  async getFeatured(req, res) {
+    const data = await listingService.getFeatured();
+    res.json({ success: true, data });
+  }
+
+  async getNew(req, res) {
+    const data = await listingService.getNew();
+    res.json({ success: true, data });
+  }
+
+  async getPopular(req, res) {
+    const data = await listingService.getPopular();
+    res.json({ success: true, data });
+  }
 }
 
 module.exports = new ListingController();

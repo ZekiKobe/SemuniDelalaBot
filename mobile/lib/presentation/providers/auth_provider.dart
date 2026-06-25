@@ -90,7 +90,47 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: _parseError(e),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> loginWithTelegram() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      // TODO: Implement actual Telegram authentication flow
+      // For now, this is a placeholder that would normally:
+      // 1. Open Telegram bot or web login
+      // 2. Get auth data from Telegram
+      // 3. Send to backend for verification
+      
+      // Placeholder telegram data - in production this would come from Telegram SDK
+      final telegramData = {
+        'id': 'telegram_user_id',
+        'first_name': 'User',
+        'username': 'telegram_username',
+        'auth_date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'hash': 'telegram_hash',
+      };
+      
+      final result = await _authRemote.loginWithTelegram(telegramData);
+      await _storage.saveTokens(
+        accessToken: result['accessToken'] as String,
+        refreshToken: result['refreshToken'] as String,
+      );
+      final user = UserModel.fromJson(result['user'] as Map<String, dynamic>);
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: true,
+        isLoading: false,
+      );
+      await _ref.read(localeProvider.notifier).syncFromUser(user.preferredLanguage);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: _parseError(e),
       );
       return false;
     }

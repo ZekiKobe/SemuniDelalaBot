@@ -124,6 +124,33 @@ class ListingService {
     return listingRepository.search(filter, sortMap[sort] || sortMap.newest, skip, Number(limit));
   }
 
+  async getFeatured(limit = 10) {
+    const filter = { 
+      status: ListingStatus.APPROVED,
+      listingType: ListingType.PRODUCT_SALE 
+    };
+    const { data } = await listingRepository.search(filter, { favoritesCount: -1, views: -1 }, 0, limit);
+    return data;
+  }
+
+  async getNew(limit = 10) {
+    const filter = { 
+      status: ListingStatus.APPROVED,
+      listingType: ListingType.PRODUCT_SALE 
+    };
+    const { data } = await listingRepository.search(filter, { publishedAt: -1, createdAt: -1 }, 0, limit);
+    return data;
+  }
+
+  async getPopular(limit = 10) {
+    const filter = { 
+      status: ListingStatus.APPROVED,
+      listingType: ListingType.PRODUCT_SALE 
+    };
+    const { data } = await listingRepository.search(filter, { views: -1 }, 0, limit);
+    return data;
+  }
+
   async submit(listingId, userId) {
     const listing = await listingRepository.findByIdRaw(listingId);
     if (!listing) throw new AppError('Listing not found', 404, 'LISTING_NOT_FOUND');

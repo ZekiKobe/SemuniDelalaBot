@@ -20,6 +20,14 @@ class AuthRemoteDataSource {
     return response.data['data'] as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> loginWithTelegram(Map<String, dynamic> telegramData) async {
+    final response = await _dio.post(
+      ApiConstants.authLoginTelegram,
+      data: telegramData,
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> refresh(String refreshToken) async {
     final response = await _dio.post(
       ApiConstants.authRefresh,

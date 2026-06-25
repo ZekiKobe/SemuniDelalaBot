@@ -22,6 +22,9 @@ router.get('/categories/:id/children', asyncHandler(categoryController.children.
 router.post('/categories', authenticate, authorize(...ADMIN_ROLES), validate(createCategorySchema), asyncHandler(categoryController.create.bind(categoryController)));
 router.put('/categories/:id', authenticate, authorize(...ADMIN_ROLES), validate(updateCategorySchema), asyncHandler(categoryController.update.bind(categoryController)));
 
+router.get('/listings/featured', asyncHandler(listingController.getFeatured.bind(listingController)));
+router.get('/listings/new', asyncHandler(listingController.getNew.bind(listingController)));
+router.get('/listings/popular', asyncHandler(listingController.getPopular.bind(listingController)));
 router.get('/listings/my', authenticate, authorize(...LISTING_ROLES), validate(searchListingSchema, 'query'), asyncHandler(listingController.myListings.bind(listingController)));
 router.get('/listings/saved', authenticate, asyncHandler(listingController.favorites.bind(listingController)));
 router.get('/listings', validate(searchListingSchema, 'query'), asyncHandler(listingController.list.bind(listingController)));

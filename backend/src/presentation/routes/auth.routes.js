@@ -13,6 +13,7 @@ const {
   resetPasswordSchema,
   updateProfileSchema,
   fcmTokenSchema,
+  telegramLoginSchema,
 } = require('../../application/dto/auth.dto');
 
 const router = Router();
@@ -25,6 +26,7 @@ const authLimiter = rateLimit({
 
 router.post('/register', authLimiter, validate(registerSchema), asyncHandler(authController.register.bind(authController)));
 router.post('/login', authLimiter, validate(loginSchema), asyncHandler(authController.login.bind(authController)));
+router.post('/telegram', authLimiter, validate(telegramLoginSchema), asyncHandler(authController.loginWithTelegram.bind(authController)));
 router.post('/refresh', validate(refreshSchema), asyncHandler(authController.refresh.bind(authController)));
 router.post('/logout', asyncHandler(authController.logout.bind(authController)));
 router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), asyncHandler(authController.forgotPassword.bind(authController)));

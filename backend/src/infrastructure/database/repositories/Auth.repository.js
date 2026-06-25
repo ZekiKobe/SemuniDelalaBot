@@ -18,6 +18,10 @@ class AuthRepository {
     return User.findOne({ telegramChatId: String(telegramChatId) });
   }
 
+  async findByTelegramId(telegramId) {
+    return User.findOne({ telegramId: String(telegramId) });
+  }
+
   async findById(id) {
     return User.findById(id);
   }

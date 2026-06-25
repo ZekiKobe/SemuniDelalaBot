@@ -50,6 +50,16 @@ const fcmTokenSchema = Joi.object({
   fcmToken: Joi.string().required(),
 });
 
+const telegramLoginSchema = Joi.object({
+  id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+  first_name: Joi.string().optional(),
+  last_name: Joi.string().optional(),
+  username: Joi.string().optional(),
+  photo_url: Joi.string().uri().optional(),
+  auth_date: Joi.number().required(),
+  hash: Joi.string().required(),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -58,4 +68,5 @@ module.exports = {
   resetPasswordSchema,
   updateProfileSchema,
   fcmTokenSchema,
+  telegramLoginSchema,
 };

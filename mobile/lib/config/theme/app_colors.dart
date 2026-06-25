@@ -1,53 +1,57 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Brand — Ethiopian warmth meets modern marketplace
-  static const Color primary = Color(0xFF0B3D2E);
-  static const Color primaryLight = Color(0xFF1A6B4F);
-  static const Color primaryDark = Color(0xFF062A1F);
-  static const Color accent = Color(0xFFE8623A);
-  static const Color accentLight = Color(0xFFFF8A65);
-  static const Color gold = Color(0xFFC9A227);
-
-  // Surfaces
-  static const Color background = Color(0xFFF7F4EF);
+  // Primary: Soft, trustworthy blue
+  static const Color primary = Color(0xFF2196F3);
+  static const Color primaryLight = Color(0xFF64B5F6);
+  static const Color primaryDark = Color(0xFF1976D2);
+  
+  // Background: Clean whites and soft grays
+  static const Color background = Color(0xFFFAFAFA);
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceMuted = Color(0xFFF0EDE8);
-  static const Color cardOverlay = Color(0x99000000);
-
-  // Text
-  static const Color textPrimary = Color(0xFF1C1917);
-  static const Color textSecondary = Color(0xFF78716C);
-  static const Color textMuted = Color(0xFFA8A29E);
+  static const Color surfaceMuted = Color(0xFFF5F5F5);
+  
+  // Text: High contrast for readability
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color textMuted = Color(0xFF9E9E9E);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
-
-  // Utility
-  static const Color border = Color(0xFFE7E5E4);
-  static const Color divider = Color(0xFFF0EDE8);
-  static const Color success = Color(0xFF16A34A);
-  static const Color error = Color(0xFFDC2626);
-  static const Color warning = Color(0xFFF59E0B);
-
-  // Gradients
+  
+  // Accent: Vibrant for CTAs
+  static const Color accent = Color(0xFFFF6B6B);
+  static const Color accentLight = Color(0xFFFF8A80);
+  
+  // Utility colors
+  static const Color border = Color(0xFFE0E0E0);
+  static const Color divider = Color(0xFFEEEEEE);
+  static const Color success = Color(0xFF4CAF50);
+  static const Color error = Color(0xFFEF5350);
+  static const Color warning = Color(0xFFFFA726);
+  static const Color cardOverlay = Color(0x99000000);
+  
+  // Subtle gradients for modern feel
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF0B3D2E), Color(0xFF1A6B4F), Color(0xFF2D8B6F)],
+    colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
   );
 
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF062A1F), Color(0xFF0B3D2E), Color(0xFF1A6B4F)],
+    colors: [Color(0xFF1976D2), Color(0xFF2196F3), Color(0xFF64B5F6)],
   );
 
   static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFFE8623A), Color(0xFFFF8A65)],
+    colors: [Color(0xFFFF6B6B), Color(0xFFFF8A80)],
   );
 
   static const LinearGradient splashGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFF062A1F), Color(0xFF0B3D2E), Color(0xFF134D38)],
+    colors: [Color(0xFF1976D2), Color(0xFF2196F3), Color(0xFF64B5F6)],
   );
+  
+  // Additional modern colors
+  static const Color gold = Color(0xFFFFC107);
 }
