@@ -193,8 +193,6 @@ const formatListingMessage = (property, lang = 'en') => {
   lines.push('');
   lines.push(`📝 ${escapeHtml(desc)}`);
   lines.push('');
-  lines.push(`🔗 <a href="${config.app.url}/property/${property.slug}">${text.viewDetails}</a>`);
-  lines.push('');
   lines.push(
     `#${property.subCity.replace(/\s/g, '')} #${property.propertyType} #Ethiopia #Delala`
   );
@@ -294,8 +292,6 @@ const formatMarketplaceListingMessage = (listing, lang = 'en') => {
 
   lines.push('');
   lines.push(`📝 ${escapeHtml(desc)}`);
-  lines.push('');
-  lines.push(`🔗 <a href="${config.app.url}/marketplace/listings/${listing._id}">${text.viewDetails}</a>`);
   lines.push('');
   lines.push(`#${normalizeTag(listing.location?.city)} #${typeTag} #Delala`);
   appendPostYoursCta(lines, text.postOn, text);

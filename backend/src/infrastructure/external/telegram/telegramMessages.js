@@ -14,6 +14,7 @@ Please select your preferred language to continue:`,
     continueButton: "Continue",
     channelJoinRequired:
       "⚠️ *Channel membership required*\n\nPlease join our Telegram channel first, then tap *Continue* again.",
+    pleaseUseButtons: "Please only use the buttons provided below.",
     benefits: `✨ *Why Choose SemuniDelala?*
 
 🎯 **For Sellers:**
@@ -40,10 +41,11 @@ Please select your preferred language to continue:`,
     myListingsButton: "📋 My Listings",
     supportButton: "☎️ Support",
     changeLanguageButton: "🌐 Change Language",
-    downloadApp: "📱 Download our mobile app for the full experience.",
-    downloadAppButton: "📱 Download App",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // downloadApp: "📱 Download our mobile app for the full experience.",
+    // downloadAppButton: "📱 Download App",
     returningWelcome: "👋 Welcome back to SemuniDelala.\n\nUse the menu below to browse listings, search by location, post a property or product, submit your requirement, or contact support.",
-    languageChanged: "✅ Language updated. The menu below reflects your new language.",
+    languageChanged: "✅ Language changed.",
     selectLanguageFirst: "Please select a language first using /start",
     mainMenuTitle: "🏠 *Main Menu*\n\nChoose an action from the keyboard below, or tap a quick option:",
     postSellerMenuPrompt: "What would you like to post?",
@@ -55,7 +57,8 @@ Please select your preferred language to continue:`,
     searchNoResults: '🔍 No properties found in "{location}".\n\nTry a different area or browse all listings.',
     searchResultsTitle: "🔍 *Properties in {location}*",
     searchAgain: "🔍 Search Again",
-    searchAppPrompt: "📱 For more details and contact information, download our mobile app.",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // searchAppPrompt: "📱 For more details and contact information, download our mobile app.",
     failedSearch: "❌ Failed to search properties. Please try again.",
     failedBrowse: "Failed to load listings. Please try again later.",
     failedListings: "❌ Failed to retrieve your listings.",
@@ -63,13 +66,18 @@ Please select your preferred language to continue:`,
     listingNotFound: "❌ Listing not found or no longer available.",
     locationTooShort: "❌ Location too short. Please enter a valid location.",
     yourListingsTitle: "📋 *Your Listings*",
-    yourListingsBody: "To view your listings, please use our mobile app with the same phone number.\nOr contact support with your Telegram username: @{username}",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // yourListingsBody: "To view your listings, please use our mobile app with the same phone number.\nOr contact support with your Telegram username: @{username}",
+    yourListingsBody: "Contact support with your Telegram username: @{username}",
     supportTicketHeader: "New Telegram support request",
     supportMessage:
-      "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
+      // UNCOMMENT WEBSITE WHEN DEPLOYED:
+      // "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
+      "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @zac_06\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
     supportReceived: "✅ Your message was sent to support. We will follow up soon.",
-    supportUnavailable:
-      "Support is not connected yet. Please try again later or use the mobile app.",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // supportUnavailable: "Support is not connected yet. Please try again later or use the mobile app.",
+    supportUnavailable: "Support is not connected yet. Please try again later.",
     searchLocationPrompt:
       '📍 *Search by Area*\n\nSend the city or area name you want to check.\n\nExample: "Addis Ababa"',
     requirementTitle:
@@ -83,7 +91,9 @@ Please select your preferred language to continue:`,
     requirementContact:
       '📝 Step 5/5: Contact Phone\n\nPlease enter your contact phone number.\nExample: "+251911000000"',
     requirementSuccess:
-      "✅ Your requirement has been submitted successfully!\n\nAfter admin approves your payment, your requirement will be posted to our channel where sellers can see it and contact you if they have a matching item or property.\n\nYou can also browse available listings using the mobile app.",
+      // UNCOMMENT WHEN APP IS DEPLOYED:
+      // "✅ Your requirement has been submitted successfully!\n\nAfter admin approves your payment, your requirement will be posted to our channel where sellers can see it and contact you if they have a matching item or property.\n\nYou can also browse available listings using the mobile app.",
+      "✅ Your requirement has been submitted successfully!\n\nAfter admin approves your payment, your requirement will be posted to our channel where sellers can see it and contact you if they have a matching item or property.",
     start:
       "🏠 Welcome to Delala Property Bot!\n\n/start - Start posting a new property\n/help - Get help\n/mylistings - View your posted properties",
     help: `📚 Help
@@ -159,7 +169,7 @@ Please select your preferred language to continue:`,
     product: {
       postTitle: "📝 *Post Your Listing*",
       chooseListingType: "What type of listing do you want to post?",
-      propertyOption: "Property",
+      propertyOption: "House",
       productOption: "Product for Sale",
       selectCategory: "Select product category:",
       selectSubcategory: "Select subcategory:",
@@ -217,6 +227,7 @@ Please select your preferred language to continue:`,
     continueButton: "ቀጥል",
     channelJoinRequired:
       "⚠️ *ቻናሉን መቀላቀል ያስፈልጋል*\n\nእባክዎ መጀመሪያ የቴሌግራም ቻናላችንን ይቀላቀሉ፣ ከዚያ *ቀጥል* የሚለውን ድጋሚ ይጫኑ።",
+    pleaseUseButtons: "እባክዎ ከታች የተሰጡትን buttons ብቻ ይጠቀሙ።",
     benefits: `✨ *ለምን ስሙኒ ደላላን ይመርጣሉ?*
 
 🎯 **ለሻጮች:**
@@ -243,10 +254,11 @@ Please select your preferred language to continue:`,
     myListingsButton: "📋 የእኔ ልጥፎች",
     supportButton: "☎️ ድጋፍ",
     changeLanguageButton: "🌐 ቋንቋ ቀይር",
-    downloadApp: "📱 ሙሉ አገልግሎት ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
-    downloadAppButton: "📱 መተግበሪያ ያውርዱ",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // downloadApp: "📱 ሙሉ አገልግሎት ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
+    // downloadAppButton: "📱 መተግበሪያ ያውርዱ",
     returningWelcome: "👋 እንኳን ወደ ስሙኒ ደላላ በደህና ተመለሱ।\n\nከታች ባለው menu ቤትና ዕቃ ዝርዝሮችን ይመልከቱ፣ በአካባቢ ይፈልጉ፣ ንብረት ወይም ዕቃ ይለጥፉ፣ ፍላጎትዎን ያስገቡ ወይም ድጋፍ ይጠይቁ።",
-    languageChanged: "✅ ቋንቋ ተቀይሯል። ከታች ያለው menu አዲሱን ቋንቋዎን ያሳያል።",
+    languageChanged: "✅ ቋንቋ ተቀይሯል።",
     selectLanguageFirst: "እባክዎ በ /start ቋንቋዎን ይምረጡ",
     mainMenuTitle: "🏠 *ዋና Menu*\n\nከታች ካለው ቁልፍ ይምረጡ፣ ወይም ፈጣን አማራጭ ይጫኑ:",
     postSellerMenuPrompt: "ምን ልትለጥፉ ይፈልጋሉ?",
@@ -258,7 +270,8 @@ Please select your preferred language to continue:`,
     searchNoResults: '🔍 በ "{location}" ምንም ቤት አልተገኘም።\n\nሌላ አካባቢ ይሞክሩ ወይም ሁሉንም ልጥፎች ይመልከቱ።',
     searchResultsTitle: "🔍 *በ {location} ያሉ ቤቶች*",
     searchAgain: "🔍 እንደገና ፈልግ",
-    searchAppPrompt: "📱 ተጨማሪ ዝርዝር እና የአገናኝ መረጃ ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // searchAppPrompt: "📱 ተጨማሪ ዝርዝር እና የአገናኝ መረጃ ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
     failedSearch: "❌ ፍለጋ አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
     failedBrowse: "ልጥፎችን መጫን አልተሳካም። እባክዎ በኋላ ይሞክሩ።",
     failedListings: "❌ ልጥፎችዎን ማግኘት አልተቻለም።",
@@ -266,13 +279,18 @@ Please select your preferred language to continue:`,
     listingNotFound: "❌ ልጥፉ አልተገኘም ወይም ከአሁን በኋላ የለም።",
     locationTooShort: "❌ አካባቢው በጣም አጭር ነው። ትክክለኛ አካባቢ ያስገቡ።",
     yourListingsTitle: "📋 *የእርስዎ ልጥፎች*",
-    yourListingsBody: "ልጥፎችዎን ለማየት ተመሳሳይ ስልክ ቁጥር በመጠቀም የሞባይል መተግበሪያችንን ይጠቀሙ።\nወይም የቴሌግራም ተጠቃሚ ስምዎ @{username} በመጠቀም ድጋፍ ያግኙ።",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // yourListingsBody: "ልጥፎችዎን ለማየት ተመሳሳይ ስልክ ቁጥር በመጠቀም የሞባይል መተግበሪያችንን ይጠቀሙ።\nወይም የቴሌግራም ተጠቃሚ ስምዎ @{username} በመጠቀም ድጋፍ ያግኙ።",
+    yourListingsBody: "የቴሌግራም ተጠቃሚ ስምዎ @{username} በመጠቀም ድጋፍ ያግኙ።",
     supportTicketHeader: "አዲስ የቴሌግራም ድጋፍ ጥያቄ",
     supportMessage:
-      "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
+      // UNCOMMENT WEBSITE WHEN DEPLOYED:
+      // "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
+      "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @zac_06\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
     supportReceived: "✅ መልዕክትዎ ወደ ድጋፍ ቡድን ተልኳል። በቅርቡ እንከታተላለን።",
-    supportUnavailable:
-      "ድጋፍ እስካሁን አልተገናኘም። እባክዎ በኋላ ይሞክሩ ወይም የሞባይል መተግበሪያውን ይጠቀሙ።",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // supportUnavailable: "ድጋፍ እስካሁን አልተገናኘም። እባክዎ በኋላ ይሞክሩ ወይም የሞባይል መተግበሪያውን ይጠቀሙ።",
+    supportUnavailable: "ድጋፍ እስካሁን አልተገናኘም። እባክዎ በኋላ ይሞክሩ።",
     searchLocationPrompt:
       '📍 *በአካባቢ ይፈልጉ*\n\nመፈለግ የሚፈልጉትን ከተማ ወይም አካባቢ ይላኩ።\n\nምሳሌ፦ "አዲስ አበባ"',
     requirementTitle:
@@ -285,7 +303,9 @@ Please select your preferred language to continue:`,
     requirementContact:
       '📝 ደረጃ 5/5: ስልክ ቁጥር\n\nእባክዎ ስልክ ቁጥርዎን ያስገቡ።\nለምሳሌ: "+251911000000"',
     requirementSuccess:
-      "✅ ፍላጎትዎ በተሳካ ሁኔታ ተላክቷል!\n\nባለሙያ የክፍያ ማስረጃዎን ከፈቀደ በኋላ ፍላጎትዎ ወደ ቻናላችን ይለጠፋል። ሻጮች/አከራዮች ፍላጎትዎን ተመልክተው የሚመጥን ቤት ወይም ዕቃ ካላቸው ያነጋግሯችኋል።\n\nማስታወቂያዎችን ለማየት የሞባይል አፕሊካችንን መጠቀም ይችላሉ።",
+      // UNCOMMENT WHEN APP IS DEPLOYED:
+      // "✅ ፍላጎትዎ በተሳካ ሁኔታ ተላክቷል!\n\nባለሙያ የክፍያ ማስረጃዎን ከፈቀደ በኋላ ፍላጎትዎ ወደ ቻናላችን ይለጠፋል። ሻጮች/አከራዮች ፍላጎትዎን ተመልክተው የሚመጥን ቤት ወይም ዕቃ ካላቸው ያነጋግሯችኋል።\n\nማስታወቂያዎችን ለማየት የሞባይል አፕሊካችንን መጠቀም ይችላሉ።",
+      "✅ ፍላጎትዎ በተሳካ ሁኔታ ተላክቷል!\n\nባለሙያ የክፍያ ማስረጃዎን ከፈቀደ በኋላ ፍላጎትዎ ወደ ቻናላችን ይለጠፋል። ሻጮች/አከራዮች ፍላጎትዎን ተመልክተው የሚመጥን ቤት ወይም ዕቃ ካላቸው ያነጋግሯችኋል።",
     start:
       "🏠 እንኳን ደላላ ደረጃ!\n\n/start - አዲስ ንብረት መለጠፍ ይጀምሩ\n/Help - እርዳታ ያግኙ\n/mylistings - የእርስዎ ቤቶችን ይመልከቱ",
     help: `📚 እርዳታ
@@ -355,7 +375,7 @@ Please select your preferred language to continue:`,
       postTitle: "📝 *ማስታወቂያዎን ይለጥፉ*",
       chooseListingType: "ምን ማስታወቂያ መለጠፍ ይፈልጋሉ?",
       propertyOption: "ቤት",
-      productOption: "ዕቃ",
+      productOption: "ዕቃ ሽያጭ",
       selectCategory: "የዕቃውን ዓይነት ይምረጡ:",
       selectSubcategory: "ንዑስ ዓይነት ይምረጡ:",
       skipSubcategory: "ይዝለሉ",
@@ -412,6 +432,7 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     continueButton: "Itti fufi",
     channelJoinRequired:
       "⚠️ *Chaanaalii join gochuun barbaachisaa dha*\n\nMaaloo dura chaanaalii Telegram keenya join godhaa, sana booda *Itti fufi* irra deebi'aa cuqaasaa.",
+    pleaseUseButtons: "Maaloo qabdoota armaan gaditti kennamanii qofa fayyadamaa.",
     benefits: `✨ *Dalaala maaliif fayyadama?*
 
 🎯 **Qabachuu fi Dhiyeessuu:**
@@ -438,10 +459,11 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     myListingsButton: "📋 Maxxansota koo",
     supportButton: "☎️ Deeggarsa",
     changeLanguageButton: "🌐 Afaan jijjiiri",
-    downloadApp: "📱 Muuxannoo guutuu argachuuf app mobile keenya buufadhu.",
-    downloadAppButton: "📱 App Buufadhu",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // downloadApp: "📱 Muuxannoo guutuu argachuuf app mobile keenya buufadhu.",
+    // downloadAppButton: "📱 App Buufadhu",
     returningWelcome: "👋 Baga nagaan gara SemuniDelala deebitan.\n\nMenu armaan gadii fayyadamuun maxxansota ilaalaa, bakkaadhaan barbaadaa, qabeenya yookaan meeshaa maxxansaa, fedhii keessan galchaa, yookaan deeggarsa gaafadhaa.",
-    languageChanged: "✅ Afaan jijjiirameera. Menu jala jiru afaan haaraa kee agarsiisa.",
+    languageChanged: "✅ Afaan jijjiirameera.",
     selectLanguageFirst: "Maaloo dura /start fayyadamuun afaan filadhu",
     mainMenuTitle: "🏠 *Menu Guddaa*\n\nKeyboard jala irraa filadhu ykn filannoo saffisaa cuqaasi:",
     postSellerMenuPrompt: "Maal maxxansuu barbaadda?",
@@ -453,7 +475,8 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     searchNoResults: '🔍 "{location}" keessatti qabeenyi hin argamne.\n\nBakka biraa yaali ykn maxxansota hunda ilaali.',
     searchResultsTitle: "🔍 *Qabeenya {location} keessatti*",
     searchAgain: "🔍 Deebi'ee Barbaadi",
-    searchAppPrompt: "📱 Bal'ina dabalataa fi odeeffannoo quunnamtii argachuuf app mobile keenya buufadhu.",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // searchAppPrompt: "📱 Bal'ina dabalataa fi odeeffannoo quunnamtii argachuuf app mobile keenya buufadhu.",
     failedSearch: "❌ Barbaachuu hin milkoofne. Irra deebi'i yaali.",
     failedBrowse: "Maxxansota fe'uu hin dandeenye. Booda irra deebi'i.",
     failedListings: "❌ Maxxansota kee argachuu hin dandeenye.",
@@ -461,13 +484,18 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     listingNotFound: "❌ Maxxansi hin argamne ykn siʼachi hin jiru.",
     locationTooShort: "❌ Bakki gabaabaa dha. Bakka sirrii galchi.",
     yourListingsTitle: "📋 *Maxxansota Kee*",
-    yourListingsBody: "Maxxansota kee ilaaluuf lakkoofsa bilbilaa walfakkaataa fayyadamuun app mobile keenya fayyadami.\nYkn deeggarsaaf maqaa Telegram kee @{username} fayyadami.",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // yourListingsBody: "Maxxansota kee ilaaluuf lakkoofsa bilbilaa walfakkaataa fayyadamuun app mobile keenya fayyadami.\nYkn deeggarsaaf maqaa Telegram kee @{username} fayyadami.",
+    yourListingsBody: "Deeggarsaaf maqaa Telegram kee @{username} fayyadami.",
     supportTicketHeader: "Gaaffii deeggarsa Telegram haaraa",
     supportMessage:
-      "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
+      // UNCOMMENT WEBSITE WHEN DEPLOYED:
+      // "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
+      "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @zac_06\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
     supportReceived: "✅ Ergaan kee gara deeggarsaatti ergameera. Yeroo dhiyootti si hordofna.",
-    supportUnavailable:
-      "Deeggarsi ammatti walitti hin hidhamne. Maaloo boodarra yaali ykn app mobile fayyadami.",
+    // UNCOMMENT WHEN APP IS DEPLOYED:
+    // supportUnavailable: "Deeggarsi ammatti walitti hin hidhamne. Maaloo boodarra yaali ykn app mobile fayyadami.",
+    supportUnavailable: "Deeggarsi ammatti walitti hin hidhamne. Maaloo boodarra yaali.",
     searchLocationPrompt:
       '📍 *Bakkaan barbaadi*\n\nMaqaa magaalaa ykn naannoo barbaaduu feetu ergi.\n\nFakkeenya: "Addis Ababa"',
     requirementTitle:
@@ -481,7 +509,9 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     requirementContact:
       '📝 Tarkaanfii 5/5: Bilbila quunnamtii\n\nLakkoofsa bilbilaa kee galchi.\nFakkeenya: "+251911000000"',
     requirementSuccess:
-      "✅ Fedhiin kee milkaa'inaan ergameera!\n\nBulchaan ragaa kaffaltii kee erga mirkanaa'ee booda, fedhiin kee gara chaanaalii keenyaatti ni maxxanfama. Gurguratoonni fedhii kee ilaalanii meeshaa ykn qabeenya walfakkaatu yoo qaban si quunnamuu danda'u.\n\nMaxxansota jiran ilaaluuf app mobile keenya fayyadami.",
+      // UNCOMMENT WHEN APP IS DEPLOYED:
+      // "✅ Fedhiin kee milkaa'inaan ergameera!\n\nBulchaan ragaa kaffaltii kee erga mirkanaa'ee booda, fedhiin kee gara chaanaalii keenyaatti ni maxxanfama. Gurguratoonni fedhii kee ilaalanii meeshaa ykn qabeenya walfakkaatu yoo qaban si quunnamuu danda'u.\n\nMaxxansota jiran ilaaluuf app mobile keenya fayyadami.",
+      "✅ Fedhiin kee milkaa'inaan ergameera!\n\nBulchaan ragaa kaffaltii kee erga mirkanaa'ee booda, fedhiin kee gara chaanaalii keenyaatti ni maxxanfama. Gurguratoonni fedhii kee ilaalanii meeshaa ykn qabeenya walfakkaatu yoo qaban si quunnamuu danda'u.",
     start:
       "🏠 Dhuftaa Dalaala!\n\n/start - Fincaa haaraa jalqabu\n/help - Gargaarsa barbaadi\n/mylistings - Fincaa keessan ilaali",
     help: `📚 Gargaarsa

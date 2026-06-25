@@ -79,7 +79,6 @@ const formatBrowsePropertyCaption = (property, index, total) => {
     location ? `Location: ${escapeHtml(location)}` : null,
     property.contactPhone ? `Contact: ${escapeHtml(property.contactPhone)}` : null,
     details ? `Details: ${escapeHtml(details)}` : null,
-    property.slug ? `<a href="${config.app.url}/property/${property.slug}">View details</a>` : null,
   ].filter(Boolean).join('\n');
 };
 
@@ -106,7 +105,6 @@ const formatBrowseMarketplaceCaption = (listing, index, total) => {
     listing.contactPhone ? `Contact: ${escapeHtml(listing.contactPhone)}` : null,
     details ? `Details: ${escapeHtml(details)}` : null,
     listing.description ? `\n${escapeHtml(truncate(listing.description))}` : null,
-    `<a href="${config.app.url}/marketplace/listings/${listing._id}">View details</a>`,
   ].filter(Boolean).join('\n');
 };
 
@@ -452,22 +450,10 @@ module.exports = {
         const statusEmoji = listing.status === 'approved' ? '✅' : listing.status === 'pending' ? '⏳' : '❌';
         const title = listing.title || 'Untitled';
         const price = listing.rentPrice || listing.price || 0;
-        
-        const keyboard = {
-          inline_keyboard: [[
-            { 
-              text: 'View Details', 
-              callback_data: item.type === 'property' 
-                ? `view_property_${listing._id}` 
-                : `view_listing_${listing._id}` 
-            }
-          ]]
-        };
 
         await this.bot.sendMessage(
           chatId,
-          `${index + 1}. ${statusEmoji} ${title}\n💰 ${price.toLocaleString()} ETB\nStatus: ${listing.status}`,
-          { reply_markup: keyboard }
+          `${index + 1}. ${statusEmoji} ${title}\n💰 ${price.toLocaleString()} ETB\nStatus: ${listing.status}`
         );
       }
     } catch (error) {
@@ -606,7 +592,7 @@ module.exports = {
           : formatBrowseMarketplaceCaption(item.record, globalIndex, browseItems.length);
         const imageSources = await resolveTelegramImageSources(item.record.images);
 
-        // Add view details button
+        // Add button to view full details in the bot
         const viewButton = {
           inline_keyboard: [[{
             text: '👁️ View Full Details',
@@ -684,11 +670,23 @@ module.exports = {
   async handleLocationSearch(chatId, location, lang) {
     try {
       const msgs = this.getMsgs(lang);
+      const locationRegex = new RegExp(location, 'i');
+      
       const result = await propertyRepository.search(
-        { city: location.toLowerCase(), status: 'approved' },
+        {
+          status: 'approved',
+          $or: [
+            { city: locationRegex },
+            { subCity: locationRegex },
+            { region: locationRegex },
+            { woreda: locationRegex },
+            { kebele: locationRegex },
+            { landmark: locationRegex },
+          ],
+        },
         { createdAt: -1 },
         0,
-        5
+        10
       );
 
       if (!result || !result.data || result.data.length === 0) {
@@ -704,11 +702,19 @@ module.exports = {
       let message = `${msgs.searchResultsTitle.replace('{location}', location)}\n\n`;
 
       result.data.forEach((property, index) => {
+        const price = property.rentPrice || property.salePrice || 0;
+        const priceLabel = property.salePrice ? 'Sale' : 'Rent';
         message += `*${index + 1}. ${property.title}*\n`;
-        message += `💰 ${property.rentPrice} ETB\n`;
+        message += `💰 ${priceLabel}: ${price.toLocaleString()} ETB\n`;
         message += `📍 ${property.city}, ${property.subCity}\n`;
-        message += `🏢 ${property.propertyType}\n\n`;
+        message += `🏢 ${property.propertyType}\n`;
+        if (property.bedrooms) message += `🛏 ${property.bedrooms} bed\n`;
+        message += `\n`;
       });
+
+      if (result.total > 10) {
+        message += `\n_Showing ${result.data.length} of ${result.total} results._\n\n`;
+      }
 
       message += msgs.searchAppPrompt;
 

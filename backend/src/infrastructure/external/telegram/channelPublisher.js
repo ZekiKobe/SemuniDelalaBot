@@ -3,7 +3,7 @@ const config = require('../../../config');
 const logger = require('../../../shared/logger/winston.logger');
 const TelegramPost = require('../../database/models/TelegramPost.model');
 const { TelegramPostStatus, TelegramPostType } = require('../../../domain/enums');
-const { formatListingMessage, formatRequirementMessage } = require('./messageFormatter');
+const { formatListingMessage, formatRequirementMessage, formatMarketplaceListingMessage } = require('./messageFormatter');
 
 async function postListingToChannel(bot, property) {
   const message = formatListingMessage(property);
@@ -111,7 +111,45 @@ async function sendMessageOrMediaGroup(bot, message, imagePaths) {
   return result;
 }
 
+async function postMarketplaceListingToChannel(bot, listing) {
+  const lang = listing.seller?.preferredLanguage || 'en';
+  const message = formatMarketplaceListingMessage(listing, lang);
+  const imagePaths = getImagePaths(listing.images);
+
+  try {
+    const result = await sendMessageOrMediaGroup(bot, message, imagePaths);
+
+    const post = await TelegramPost.create({
+      listingId: listing._id,
+      channelId: config.telegram.channelId,
+      messageId: result[0]?.message_id,
+      postType: TelegramPostType.MARKETPLACE_LISTING,
+      status: TelegramPostStatus.SENT,
+      content: message,
+      imageMessageIds: result.map((r) => r.message_id),
+      postedAt: new Date(),
+    });
+
+    logger.info('Marketplace listing posted to Telegram', { listingId: listing._id });
+    return post;
+  } catch (error) {
+    logger.error('Failed to post marketplace listing to Telegram', { error: error.message, listingId: listing._id });
+
+    await TelegramPost.create({
+      listingId: listing._id,
+      channelId: config.telegram.channelId,
+      postType: TelegramPostType.MARKETPLACE_LISTING,
+      status: TelegramPostStatus.FAILED,
+      content: message,
+      error: error.message,
+    });
+
+    throw error;
+  }
+}
+
 module.exports = {
   postListingToChannel,
   postRequirementToChannel,
+  postMarketplaceListingToChannel,
 };

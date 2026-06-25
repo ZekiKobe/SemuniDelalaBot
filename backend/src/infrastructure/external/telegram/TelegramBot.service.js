@@ -11,6 +11,7 @@ const requirementHandlers = require('./handlers/requirementHandlers');
 const productPersistenceHandlers = require('./handlers/productPersistenceHandlers');
 const adminHandlers = require('./handlers/adminHandlers');
 const publishingHandlers = require('./handlers/publishingHandlers');
+const channelPublisher = require('./channelPublisher');
 
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_CHANNEL_URL = 'https://t.me/semunidelala';
@@ -475,6 +476,14 @@ class TelegramBotService {
           return;
         }
 
+        // If user is not onboarded and no active state, tell them to use buttons
+        if (!this.isUserOnboarded(chatId) && !state) {
+          await this.bot.sendMessage(chatId, this.getMsgs(lang).pleaseUseButtons, {
+            reply_markup: { remove_keyboard: true },
+          });
+          return;
+        }
+
         if (state && state.step === 'support_message') {
           await this.handleSupportMessage(chatId, msg);
         } else if (state && state.step === 'search_location') {
@@ -483,8 +492,13 @@ class TelegramBotService {
           await this.handleProductSubmissionStep(chatId, msg.text, msg.from, lang);
         } else if (state && typeof state.step === 'string' && state.step.startsWith('req_')) {
           await this.handleRequirementSubmissionStep(chatId, msg.text, lang);
-        } else {
+        } else if (state) {
           await this.handlePropertySubmissionStep(chatId, msg.text, msg.from, lang);
+        } else {
+          // User is onboarded but sent text without any active state - tell them to use buttons
+          await this.bot.sendMessage(chatId, this.getMsgs(lang).pleaseUseButtons, {
+            reply_markup: this.getMainReplyKeyboard(lang),
+          });
         }
       }
 
@@ -720,9 +734,7 @@ class TelegramBotService {
 
   async confirmLanguageChange(chatId, lang) {
     const msgs = this.getMsgs(lang);
-    await this.bot.sendMessage(chatId, msgs.languageChanged, {
-      reply_markup: this.getMainReplyKeyboard(lang),
-    });
+    await this.bot.sendMessage(chatId, msgs.languageChanged);
   }
 
   async showReturningWelcome(chatId, lang) {
@@ -751,7 +763,7 @@ class TelegramBotService {
       ],
     };
 
-    await this.bot.sendMessage(chatId, `${msgs.postSellerMenuPrompt}\n\n${productMsgs.chooseListingType}`, {
+    await this.bot.sendMessage(chatId, productMsgs.chooseListingType, {
       parse_mode: 'Markdown',
       reply_markup: keyboard,
     });
@@ -762,6 +774,28 @@ class TelegramBotService {
     await this.bot.sendMessage(chatId, msgs.mainMenuPrompt, {
       reply_markup: this.getMainReplyKeyboard(lang),
     });
+  }
+
+  // Channel posting methods for mobile app approvals
+  async postListingToChannel(property) {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+    return channelPublisher.postListingToChannel(this.bot, property);
+  }
+
+  async postMarketplaceListingToChannel(listing) {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+    return channelPublisher.postMarketplaceListingToChannel(this.bot, listing);
+  }
+
+  async postRequirementToChannel(requirement) {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+    return channelPublisher.postRequirementToChannel(this.bot, requirement);
   }
 }
 

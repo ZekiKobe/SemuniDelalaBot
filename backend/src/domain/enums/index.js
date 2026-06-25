@@ -115,6 +115,7 @@ const TelegramPostStatus = {
 const TelegramPostType = {
   LISTING: 'listing',
   REQUIREMENT: 'requirement',
+  MARKETPLACE_LISTING: 'marketplace_listing',
   NOTIFICATION: 'notification',
 };
 
