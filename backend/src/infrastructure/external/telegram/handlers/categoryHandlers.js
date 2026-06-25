@@ -70,8 +70,9 @@ const CATEGORY_LABELS = {
   },
 };
 
-const productMessages = (messages, lang) => messages[lang]?.product || messages.en.product;
-const categoryLabel = (category, lang) => CATEGORY_LABELS[lang]?.[category.slug] || category.name;
+const { normalizeBotLang } = require('../langUtils');
+const productMessages = (messages, lang) => messages[normalizeBotLang(lang)]?.product || messages.en.product;
+const categoryLabel = (category, lang) => CATEGORY_LABELS[normalizeBotLang(lang)]?.[category.slug] || category.name;
 
 const REQUIREMENT_TITLE_PROMPTS = {
   product: {
@@ -91,9 +92,9 @@ const requirementTitlePrompt = (messages, lang, requirement = {}) => {
     ? 'product'
     : 'property';
 
-  return REQUIREMENT_TITLE_PROMPTS[promptType][lang] ||
+  return REQUIREMENT_TITLE_PROMPTS[promptType][normalizeBotLang(lang)] ||
     REQUIREMENT_TITLE_PROMPTS[promptType].en ||
-    messages[lang].requirementTitle;
+    messages[normalizeBotLang(lang)]?.requirementTitle || messages.en.requirementTitle;
 };
 
 module.exports = {
@@ -211,6 +212,39 @@ module.exports = {
     data.subcategorySlug = subcategory?.slug;
   },
 
+  getProductExample(categorySlug, subcategorySlug) {
+    const examples = {
+      electronics: {
+        phones: 'iPhone 13 Pro Max',
+        laptops: 'Dell XPS 15 Laptop',
+        tablets: 'iPad Pro 12.9"',
+        cameras: 'Canon EOS R5 Camera',
+        default: 'Samsung Galaxy S23'
+      },
+      vehicles: {
+        cars: 'Toyota Corolla 2020',
+        motorcycles: 'Honda CBR 500R',
+        default: 'Toyota Camry 2021'
+      },
+      furniture: {
+        default: 'Modern L-Shaped Sofa'
+      },
+      fashion: {
+        default: 'Nike Air Max Sneakers'
+      },
+      'home-appliances': {
+        default: 'Samsung 55" Smart TV'
+      },
+      default: 'iPhone 13 Pro Max'
+    };
+
+    const category = examples[categorySlug] || examples.default;
+    if (typeof category === 'object') {
+      return category[subcategorySlug] || category.default || examples.default;
+    }
+    return category;
+  },
+
   async continueAfterCategorySelection(chatId, flow, lang) {
     const state = this.userStates.get(chatId);
     if (!state) return;
@@ -218,7 +252,16 @@ module.exports = {
     if (flow === 'product') {
       state.step = 'product_title';
       this.userStates.set(chatId, state);
-      this.bot.sendMessage(chatId, productMessages(this.messages, lang).stepTitle);
+      
+      const data = this.tempPropertyData.get(chatId);
+      const example = this.getProductExample(data?.product?.categorySlug, data?.product?.subcategorySlug);
+      const stepLabels = {
+        en: `Step 1/9: Product title\nExample: ${example}`,
+        am: `ደረጃ 1/9: የዕቃው ርዕስ\nለምሳሌ: ${example}`,
+        or: `Tarkaanfii 1/9: Mata duree meeshaa\nFakkeenya: ${example}`
+      };
+      const normalizedLang = lang === 'om' ? 'or' : lang;
+      this.bot.sendMessage(chatId, stepLabels[normalizedLang] || stepLabels.en);
       return;
     }
 
@@ -233,7 +276,7 @@ module.exports = {
     if (flow === 'property') {
       state.step = 'title';
       this.userStates.set(chatId, state);
-      this.bot.sendMessage(chatId, this.messages[lang].step1_title);
+      this.bot.sendMessage(chatId, this.getMsgs(lang).step1_title);
     }
   }
 };

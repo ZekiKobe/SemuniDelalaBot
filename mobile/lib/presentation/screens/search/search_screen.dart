@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
 import '../../../domain/enums/property_type.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../providers/property_provider.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/property_card.dart';
@@ -26,12 +27,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final filters = ref.watch(searchFiltersProvider);
     final results = ref.watch(searchResultsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Search', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text(l10n.search, style: Theme.of(context).textTheme.headlineMedium),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -50,8 +52,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: TextField(
               controller: _searchController,
               decoration: AppDecorations.inputDecoration(
-                label: 'Search',
-                hint: 'Area, keyword, property type...',
+                label: l10n.search,
+                hint: l10n.searchHint,
                 prefixIcon: Icons.search_rounded,
               ),
               onSubmitted: (value) {

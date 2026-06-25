@@ -2,16 +2,18 @@ module.exports = {
   en: {
     welcome: `🏠 *Welcome to SemuniDelala*
 
-Ethiopia's Modern Property Marketplace
+SemuniDelala is Ethiopia's trusted digital marketplace for property and products.
 
-No middleman. Direct.
+Our platform helps you connect directly with buyers, sellers, landlords, and renters through a simple and reliable experience.
 
-Please select your language to continue:`,
+Please select your preferred language to continue:`,
     selectLanguage: "Select Language",
     joinChannelPrompt:
       "📢 *Join our Telegram channel*\n\nGet property and product listings, plus buyer requirements posted by users.\n\nYour approved listing or requirement will also be posted to the channel so more people can see it.",
     joinChannelButton: "📢 Join Channel",
     continueButton: "Continue",
+    channelJoinRequired:
+      "⚠️ *Channel membership required*\n\nPlease join our Telegram channel first, then tap *Continue* again.",
     benefits: `✨ *Why Choose SemuniDelala?*
 
 🎯 **For Sellers:**
@@ -38,6 +40,29 @@ Please select your language to continue:`,
     myListingsButton: "📋 My Listings",
     supportButton: "☎️ Support",
     changeLanguageButton: "🌐 Change Language",
+    downloadApp: "📱 Download our mobile app for the full experience.",
+    downloadAppButton: "📱 Download App",
+    returningWelcome: "👋 Welcome back to SemuniDelala.\n\nUse the menu below to browse listings, search by location, post a property or product, submit your requirement, or contact support.",
+    languageChanged: "✅ Language updated. The menu below reflects your new language.",
+    selectLanguageFirst: "Please select a language first using /start",
+    mainMenuTitle: "🏠 *Main Menu*\n\nChoose an action from the keyboard below, or tap a quick option:",
+    postSellerMenuPrompt: "What would you like to post?",
+    browseEmpty: "No approved listings are available at the moment. Please check back later.",
+    browseEnd: "End of page {current}/{total}. Use the buttons below to navigate.",
+    browseRefresh: "🔄 Refresh",
+    browsePrev: "◀️ Previous",
+    browseNext: "Next ▶️",
+    searchNoResults: '🔍 No properties found in "{location}".\n\nTry a different area or browse all listings.',
+    searchResultsTitle: "🔍 *Properties in {location}*",
+    searchAgain: "🔍 Search Again",
+    searchAppPrompt: "📱 For more details and contact information, download our mobile app.",
+    failedSearch: "❌ Failed to search properties. Please try again.",
+    failedBrowse: "Failed to load listings. Please try again later.",
+    failedListings: "❌ Failed to retrieve your listings.",
+    locationTooShort: "❌ Location too short. Please enter a valid location.",
+    yourListingsTitle: "📋 *Your Listings*",
+    yourListingsBody: "To view your listings, please use our mobile app with the same phone number.\nOr contact support with your Telegram username: @{username}",
+    supportTicketHeader: "New Telegram support request",
     supportMessage:
       "☎️ SemuniDelala Support\n\nIf you face any problem, call us:\n+251 99 367 6861\n+251 93 663 9391\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
     supportReceived: "✅ Your message was sent to support. We will follow up soon.",
@@ -56,7 +81,7 @@ Please select your language to continue:`,
     requirementContact:
       '📝 Step 5/5: Contact Phone\n\nPlease enter your contact phone number.\nExample: "+251911000000"',
     requirementSuccess:
-      "✅ Your requirement has been posted!\n\nSellers will be able to see your requirement and contact you if they have a matching item or property.\n\nYou can also browse available listings using the mobile app.",
+      "✅ Your requirement has been submitted successfully!\n\nAfter admin approves your payment, your requirement will be posted to our channel where sellers can see it and contact you if they have a matching item or property.\n\nYou can also browse available listings using the mobile app.",
     start:
       "🏠 Welcome to Delala Property Bot!\n\n/start - Start posting a new property\n/help - Get help\n/mylistings - View your posted properties",
     help: `📚 Help
@@ -137,8 +162,8 @@ Please select your language to continue:`,
       selectCategory: "Select product category:",
       selectSubcategory: "Select subcategory:",
       skipSubcategory: "Skip subcategory",
-      noCategories: "No categories are available yet. Please ask an admin to seed marketplace categories.",
-      requiredCategoryMissing: "The required category is not available yet. Please ask an admin to seed marketplace categories.",
+      noCategories: "⚠️ This feature is currently being set up. Please try again later or contact support for assistance.",
+      requiredCategoryMissing: "⚠️ This category is temporarily unavailable. Please try again later or contact support.",
       stepTitle: "Step 1/9: Product title\nExample: iPhone 13 Pro Max",
       stepDescription: "Step 2/9: Description\nInclude key specs, accessories, and any defects.",
       stepPrice: "Step 3/9: Price in ETB",
@@ -178,16 +203,18 @@ Please select your language to continue:`,
   am: {
     welcome: `🏠 *እንኳን ወደ ስሙኒ ደላላ በደህና መጡ*
 
-የኢትዮጵያ ዘመናዊ የቤት ገበያ እና ዕቃዎችን የሚገበያዩቤት ቦት
+ስሙኒ ደላላ ለቤት እና ለዕቃዎች የታመነ የኢትዮጵያ ዲጂታል መገበያያ መድረክ ነው።
 
-ምንም ደላላ/ኮሚሽን አያስፈልግም። ቀጥታ ከሻጭ/ከአክራይ ጋር የሚገናኙቤት።
+መድረካችን ከገዢዎች፣ ሻጮች፣ አከራዮች እና ተከራዮች ጋር በቀላሉና በታማኝነት ቀጥታ እንዲገናኙ ያግዛል።
 
-እባክዎ ቋንቋዎን ይምረጡ:`,
+ለመቀጠል እባክዎ የሚመርጡትን ቋንቋ ይምረጡ:`,
     selectLanguage: "ቋንቋ ይምረጡ",
     joinChannelPrompt:
       "📢 *የቴሌግራም ቻናላችንን ይቀላቀሉ*\n\nየቤትና የዕቃ ልጥፎችን እንዲሁም ተጠቃሚዎች የሚለጥፉትን የመግዛት/የመከራየት ፍላጎቶች ያግኙ።\n\nየእርስዎም የተፈቀደ ልጥፍ ወይም ፍላጎት ብዙ ሰዎች እንዲያዩት ወደ ቻናሉ ይለጠፋል።",
     joinChannelButton: "📢 ቻናሉን ይቀላቀሉ",
     continueButton: "ቀጥል",
+    channelJoinRequired:
+      "⚠️ *ቻናሉን መቀላቀል ያስፈልጋል*\n\nእባክዎ መጀመሪያ የቴሌግራም ቻናላችንን ይቀላቀሉ፣ ከዚያ *ቀጥል* የሚለውን ድጋሚ ይጫኑ።",
     benefits: `✨ *ለምን ስሙኒ ደላላን ይመርጣሉ?*
 
 🎯 **ለሻጮች:**
@@ -214,6 +241,29 @@ Please select your language to continue:`,
     myListingsButton: "📋 የእኔ ልጥፎች",
     supportButton: "☎️ ድጋፍ",
     changeLanguageButton: "🌐 ቋንቋ ቀይር",
+    downloadApp: "📱 ሙሉ አገልግሎት ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
+    downloadAppButton: "📱 መተግበሪያ ያውርዱ",
+    returningWelcome: "👋 እንኳን ወደ ስሙኒ ደላላ በደህና ተመለሱ።\n\nከታች ባለው ምናሌ ቤትና ዕቃ ዝርዝሮችን ይመልከቱ፣ በአካባቢ ይፈልጉ፣ ንብረት ወይም ዕቃ ይለጥፉ፣ ፍላጎትዎን ያስገቡ ወይም ድጋፍ ይጠይቁ።",
+    languageChanged: "✅ ቋንቋ ተቀይሯል። ከታች ያለው ምናሌ አዲሱን ቋንቋዎን ያ reflect ያደርጋል።",
+    selectLanguageFirst: "እባክዎ በ /start ቋንቋዎን ይምረጡ",
+    mainMenuTitle: "🏠 *ዋና ምናሌ*\n\nከታች ካለው ቁልፍ ይምረጡ፣ ወይም ፈጣን አማራጭ ይጫኑ:",
+    postSellerMenuPrompt: "ምን ልትለጥፉ ይፈልጋሉ?",
+    browseEmpty: "በዚህ ጊዜ የተፈቀዱ ልጥፎች የሉም። እባክዎ በኋላ ይመለሱ።",
+    browseEnd: "ገጽ {current}/{total} መጨረሻ። ለመንቀሳቀስ ከታች ያሉትን ቁልፎች ይጠቀሙ።",
+    browseRefresh: "🔄 አድስ",
+    browsePrev: "◀️ ቀዳሚ",
+    browseNext: "ቀጣይ ▶️",
+    searchNoResults: '🔍 በ "{location}" ምንም ቤት አልተገኘም።\n\nሌላ አካባቢ ይሞክሩ ወይም ሁሉንም ልጥፎች ይመልከቱ።',
+    searchResultsTitle: "🔍 *በ {location} ያሉ ቤቶች*",
+    searchAgain: "🔍 እንደገና ፈልግ",
+    searchAppPrompt: "📱 ተጨማሪ ዝርዝር እና የአገናኝ መረጃ ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
+    failedSearch: "❌ ፍለጋ አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+    failedBrowse: "ልጥፎችን መጫን አልተሳካም። እባክዎ በኋላ ይሞክሩ።",
+    failedListings: "❌ ልጥፎችዎን ማግኘት አልተቻለም።",
+    locationTooShort: "❌ አካባቢው በጣም አጭር ነው። ትክክለኛ አካባቢ ያስገቡ።",
+    yourListingsTitle: "📋 *የእርስዎ ልጥፎች*",
+    yourListingsBody: "ልጥፎችዎን ለማየት ተመሳሳይ ስልክ ቁጥር በመጠቀም የሞባይል መተግበሪያችንን ይጠቀሙ።\nወይም የቴሌግራም ተጠቃሚ ስምዎ @{username} በመጠቀም ድጋፍ ያግኙ።",
+    supportTicketHeader: "አዲስ የቴሌግራም ድጋፍ ጥያቄ",
     supportMessage:
       "☎️ የስሙኒ ደላላ ድጋፍ\n\nማንኛውም ችግር ካጋጠምዎ ይደውሉልን፦\n+251 99 367 6861\n+251 93 663 9391\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ልጥፍ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ያካትቱ።",
     supportReceived: "✅ መልዕክትዎ ወደ ድጋፍ ቡድን ተልኳል። በቅርቡ እንከታተላለን።",
@@ -231,7 +281,7 @@ Please select your language to continue:`,
     requirementContact:
       '📝 ደረጃ 5/5: የአገናኝ ስልክ\n\nእባክዎ የአገናኝ ስልክ ቁጥር ያስገቡ።\nለምሳሌ: "+251911000000"',
     requirementSuccess:
-      "✅ ፍላጎትዎ ተረጋግጧል!\n\nሻጮች/አከራዮች ፍላጎትዎን ይመልከቱ እና የሚዛመድ እቃ ወይም ንብረት ካላቸው ይጠይቁዎታል።\nየሚገኙትን ዝርዝሮች ለማየት የሞባይል አፕሊካችንን መጠቀም ይችላሉ።",
+      "✅ ፍላጎትዎ በተሳካ ሁኔታ ተላክቷል!\n\nአስተዳዳሪ የክፍያዎን ማረጋገጫ ከፈቀደ በኋላ ፍላጎትዎ ወደ ቻናላችን ይለጠፋል። ሻጮች/አከራዮች ፍላጎትዎን ተመልከተው የሚዛመድ እቃ ወይም ንብረት ካላቸው ያገናኙዎታል።\n\nየሚገኙትን ዝርዝሮች ለማየት የሞባይል አፕሊካችንን መጠቀም ይችላሉ።",
     start:
       "🏠 እንኳን ደላላ ደረጃ!\n\n/start - አዲስ ንብረት መለጠፍ ይጀምሩ\n/Help - እርዳታ ያግኙ\n/mylistings - የእርስዎ ቤቶችን ይመልከቱ",
     help: `📚 እርዳት
@@ -305,8 +355,8 @@ Please select your language to continue:`,
       selectCategory: "የዕቃውን ምድብ ይምረጡ:",
       selectSubcategory: "ንዑስ ምድብ ይምረጡ:",
       skipSubcategory: "ንዑስ ምድብ ይዝለሉ",
-      noCategories: "እስካሁን ምድቦች አልተዘጋጁም። እባክዎ አስተዳዳሪን ያነጋግሩ።",
-      requiredCategoryMissing: "የሚፈለገው ምድብ አልተገኘም። እባክዎ አስተዳዳሪን ያነጋግሩ።",
+      noCategories: "⚠️ ይህ አገልግሎት በአሁኑ ጊዜ እየተዘጋጀ ነው። እባክዎ በኋላ ይሞክሩ ወይም ድጋፍ ያግኙ።",
+      requiredCategoryMissing: "⚠️ ይህ ምድብ ጊዜያዊ ስላልተገኘ። እባክዎ በኋላ ይሞክሩ ወይም ድጋፍ ያግኙ።",
       stepTitle: "ደረጃ 1/9: የዕቃው ርዕስ\nለምሳሌ: iPhone 13 Pro Max",
       stepDescription: "ደረጃ 2/9: መግለጫ\nዋና ዝርዝሮችን፣ ተጨማሪ እቃዎችን እና ጉድለቶችን ያካትቱ።",
       stepPrice: "ደረጃ 3/9: ዋጋ በብር",
@@ -344,18 +394,20 @@ Please select your language to continue:`,
     },
   },
   or: {
-    welcome: `🏠 *Dhuftaa Dalaala*
+    welcome: `🏠 *Baga gara SemuniDelala dhuftan*
 
-Fincaraa Itoophiyaa Haaraa
+SemuniDelala gabaa dijitaalaa amanamaa Itoophiyaa kan qabeenyaa fi meeshaaleef.
 
-Midhamee malee. Diriira.
+Tajaajilli keenya bitoota, gurgurtoota, abbootii qabeenyaa fi kireeffattoota waliin karaa salphaa fi amanamaa ta'een kallattiin wal qunnamsiisa.
 
-Afaan filadhu itti fayyadami:`,
+Itti fufuuf afaan barbaaddan filadhaa:`,
     selectLanguage: "Afaan Filadhu",
     joinChannelPrompt:
       "📢 *Chaanaalii Telegram keenya join godhi*\n\nMaxxansa qabeenyaa fi meeshaalee, akkasumas fedhii bitachuu/kireeffachuu fayyadamtoonni maxxansan argadhu.\n\nMaxxansi ykn fedhiin kee mirkanaa'ees namoonni baay'een akka arganiif chaanaalicha irratti ni maxxanfama.",
     joinChannelButton: "📢 Chaanaalii Join Godhi",
     continueButton: "Itti fufi",
+    channelJoinRequired:
+      "⚠️ *Chaanaalii join gochuun barbaachisaa dha*\n\nMaaloo dura chaanaalii Telegram keenya join godhaa, sana booda *Itti fufi* irra deebi'aa cuqaasaa.",
     benefits: `✨ *Dalaala maaliif fayyadama?*
 
 🎯 **Qabachuu fi Dhiyeessuu:**
@@ -382,6 +434,29 @@ Afaan filadhu itti fayyadami:`,
     myListingsButton: "📋 Maxxansota koo",
     supportButton: "☎️ Deeggarsa",
     changeLanguageButton: "🌐 Afaan jijjiiri",
+    downloadApp: "📱 Muuxannoo guutuu argachuuf app mobile keenya buufadhu.",
+    downloadAppButton: "📱 App Buufadhu",
+    returningWelcome: "👋 Baga nagaan gara SemuniDelala deebitan.\n\nMenu armaan gadii fayyadamuun maxxansota ilaalaa, bakkaadhaan barbaadaa, qabeenya yookaan meeshaa maxxansaa, fedhii keessan galchaa, yookaan deeggarsa gaafadhaa.",
+    languageChanged: "✅ Afaan jijjiirameera. Menu jala jiru afaan haaraa kee agarsiisa.",
+    selectLanguageFirst: "Maaloo dura /start fayyadamuun afaan filadhu",
+    mainMenuTitle: "🏠 *Menu Guddaa*\n\nKeyboard jala irraa filadhu ykn filannoo saffisaa cuqaasi:",
+    postSellerMenuPrompt: "Maal maxxansuu barbaadda?",
+    browseEmpty: "Yeroo ammaa maxxansni mirkanaa'e hin jiru. Booda deebi'i.",
+    browseEnd: "Fuula {current}/{total} xumura. Socho'uuf button armaan gadii fayyadami.",
+    browseRefresh: "🔄 Haaromsi",
+    browsePrev: "◀️ Duraa",
+    browseNext: "Itaana ▶️",
+    searchNoResults: '🔍 "{location}" keessatti qabeenyi hin argamne.\n\nBakka biraa yaali ykn maxxansota hunda ilaali.',
+    searchResultsTitle: "🔍 *Qabeenya {location} keessatti*",
+    searchAgain: "🔍 Deebi'ee Barbaadi",
+    searchAppPrompt: "📱 Bal'ina dabalataa fi odeeffannoo quunnamtii argachuuf app mobile keenya buufadhu.",
+    failedSearch: "❌ Barbaachuu hin milkoofne. Irra deebi'i yaali.",
+    failedBrowse: "Maxxansota fe'uu hin dandeenye. Booda irra deebi'i.",
+    failedListings: "❌ Maxxansota kee argachuu hin dandeenye.",
+    locationTooShort: "❌ Bakki gabaabaa dha. Bakka sirrii galchi.",
+    yourListingsTitle: "📋 *Maxxansota Kee*",
+    yourListingsBody: "Maxxansota kee ilaaluuf lakkoofsa bilbilaa walfakkaataa fayyadamuun app mobile keenya fayyadami.\nYkn deeggarsaaf maqaa Telegram kee @{username} fayyadami.",
+    supportTicketHeader: "Gaaffii deeggarsa Telegram haaraa",
     supportMessage:
       "☎️ Deeggarsa SemuniDelala\n\nRakkoon yoo si mudate nuuf bilbili:\n+251 99 367 6861\n+251 93 663 9391\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte dabali.",
     supportReceived: "✅ Ergaan kee gara deeggarsaatti ergameera. Yeroo dhiyootti si hordofna.",
@@ -400,7 +475,7 @@ Afaan filadhu itti fayyadami:`,
     requirementContact:
       '📝 Tarkaanfii 5/5: Bilbila quunnamtii\n\nLakkoofsa bilbilaa kee galchi.\nFakkeenya: "+251911000000"',
     requirementSuccess:
-      "✅ Fedhiin kee maxxanfameera!\n\nNamoonni meeshaa ykn qabeenya wal fakkaatu qaban si quunnamuu danda'u.\n\nMaxxansota jiran ilaaluuf app mobile keenya fayyadami.",
+      "✅ Fedhiin kee milkaa'inaan ergameera!\n\nBulchaan ragaa kaffaltii kee erga mirkanaa'ee booda, fedhiin kee gara chaanaalii keenyaatti ni maxxanfama. Gurguratoonni fedhii kee ilaalanii meeshaa ykn qabeenya walfakkaatu yoo qaban si quunnamuu danda'u.\n\nMaxxansota jiran ilaaluuf app mobile keenya fayyadami.",
     start:
       "🏠 Dhuftaa Dalaala!\n\n/start - Fincaa haaraa jalqabu\n/help - Gargaarsa barbaadi\n/mylistings - Fincaa keessan ilaali",
     help: `📚 Gargaarsa
@@ -479,8 +554,8 @@ Afaan filadhu itti fayyadami:`,
       selectCategory: "Gosa meeshaa filadhu:",
       selectSubcategory: "Gosa xiqqaa filadhu:",
       skipSubcategory: "Gosa xiqqaa darbi",
-      noCategories: "Gosoonni amma hin jiran. Bulchaa akka qopheessu gaafadhu.",
-      requiredCategoryMissing: "Gosti barbaachisu hin jiru. Bulchaa akka qopheessu gaafadhu.",
+      noCategories: "⚠️ Tajaajilli kun yeroo ammaa qophaa'aa jira. Maaloo booda yaali yookaan deeggarsa gaafadhu.",
+      requiredCategoryMissing: "⚠️ Gosti kun yeroodhaaf hin argamu. Maaloo booda yaali yookaan deeggarsa gaafadhu.",
       stepTitle: "Tarkaanfii 1/9: Mata duree meeshaa\nFakkeenya: iPhone 13 Pro Max",
       stepDescription: "Tarkaanfii 2/9: Ibsa\nAmaloota ijoo, meeshaalee dabalataa fi hanqinoota galchi.",
       stepPrice: "Tarkaanfii 3/9: Gatii ETB",

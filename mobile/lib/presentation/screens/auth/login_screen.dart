@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/delala_button.dart';
 
@@ -44,6 +45,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
 
     return Scaffold(
@@ -69,13 +71,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 28),
                 Text(
-                  'Welcome back',
+                  l10n.welcomeBack,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.displayMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in to find your perfect home',
+                  l10n.signInSubtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -83,29 +85,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextFormField(
                   controller: _identifierController,
                   decoration: AppDecorations.inputDecoration(
-                    label: 'Phone or Email',
+                    label: l10n.phoneNumber,
                     hint: '09XXXXXXXX',
                     prefixIcon: Icons.phone_outlined,
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                  validator: (v) => v == null || v.isEmpty ? l10n.enterValidPhone : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: AppDecorations.inputDecoration(
-                    label: 'Password',
+                    label: l10n.password,
                     prefixIcon: Icons.lock_outline_rounded,
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
-                  validator: (v) => v == null || v.length < 6 ? 'Min 6 characters' : null,
+                  validator: (v) => v == null || v.length < 6 ? l10n.minPasswordLength : null,
                 ),
                 const SizedBox(height: 28),
                 DelalaButton(
-                  label: 'Sign In',
+                  label: l10n.signIn,
                   onPressed: _login,
                   isLoading: authState.isLoading,
                 ),
@@ -113,11 +115,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Don't have an account? ", style: Theme.of(context).textTheme.bodyMedium),
+                    Text('${l10n.register} ', style: Theme.of(context).textTheme.bodyMedium),
                     GestureDetector(
                       onTap: () => context.push('/register'),
                       child: Text(
-                        'Register',
+                        l10n.createAccount,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.accent,
                               fontWeight: FontWeight.w600,

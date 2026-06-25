@@ -5,6 +5,7 @@ import '../../core/storage/secure_storage.dart';
 import '../../core/utils/phone_validator.dart';
 import '../../data/datasources/remote/auth_remote_datasource.dart';
 import '../../data/models/user_model.dart';
+import 'locale_provider.dart';
 
 final authRemoteProvider = Provider<AuthRemoteDataSource>((ref) {
   return AuthRemoteDataSource(ref.watch(dioProvider));
@@ -51,8 +52,9 @@ String _parseError(dynamic e) {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRemoteDataSource _authRemote;
   final SecureStorage _storage;
+  final Ref _ref;
 
-  AuthNotifier(this._authRemote, this._storage) : super(const AuthState()) {
+  AuthNotifier(this._authRemote, this._storage, this._ref) : super(const AuthState()) {
     _checkAuth();
   }
 
@@ -63,6 +65,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final user = await _authRemote.getMe();
       state = state.copyWith(user: user, isAuthenticated: true);
+      await _ref.read(localeProvider.notifier).syncFromUser(user.preferredLanguage);
     } catch (_) {
       await _storage.clearTokens();
     }
@@ -82,6 +85,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         isLoading: false,
       );
+      await _ref.read(localeProvider.notifier).syncFromUser(user.preferredLanguage);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -97,15 +101,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String phoneNumber,
     String? email,
     required String password,
+    String? preferredLanguage,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final normalized = normalizeEthiopianPhone(phoneNumber);
+      final localeCode = preferredLanguage ?? _ref.read(localeProvider).languageCode;
       final result = await _authRemote.register({
         'fullName': fullName,
         'phoneNumber': normalized,
         if (email != null && email.isNotEmpty) 'email': email,
         'password': password,
+        'preferredLanguage': localeCode,
       });
       await _storage.saveTokens(
         accessToken: result['accessToken'] as String,
@@ -117,9 +124,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         isLoading: false,
       );
+      await _ref.read(localeProvider.notifier).syncFromUser(user.preferredLanguage);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _parseError(e));
+      return false;
+    }
+  }
+
+  Future<bool> updatePreferredLanguage(String languageCode) async {
+    try {
+      final user = await _authRemote.updateProfile({'preferredLanguage': languageCode});
+      state = state.copyWith(user: user);
+      await _ref.read(localeProvider.notifier).setLocale(languageCode);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: _parseError(e));
       return false;
     }
   }
@@ -138,5 +158,6 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(
     ref.watch(authRemoteProvider),
     ref.watch(secureStorageProvider),
+    ref,
   );
 });

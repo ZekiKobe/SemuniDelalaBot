@@ -1,7 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('../../../config');
 const logger = require('../../../shared/logger/winston.logger');
+const authRepository = require('../../database/repositories/Auth.repository');
 const messages = require('./telegramMessages');
+const { getMessages, normalizeBotLang, normalizeDbLang } = require('./langUtils');
 const categoryHandlers = require('./handlers/categoryHandlers');
 const productHandlers = require('./handlers/productHandlers');
 const propertyHandlers = require('./handlers/propertyHandlers');
@@ -10,20 +12,33 @@ const productPersistenceHandlers = require('./handlers/productPersistenceHandler
 const adminHandlers = require('./handlers/adminHandlers');
 const publishingHandlers = require('./handlers/publishingHandlers');
 
-const DEFAULT_LANGUAGE = 'am';
+const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_CHANNEL_URL = 'https://t.me/semunidelala';
+const DESTRUCTIVE_CALLBACKS = new Set([
+  'submit_later',
+  'approve_req_',
+  'reject_req_',
+  'approve_listing_',
+  'reject_listing_',
+  'approve_',
+  'reject_',
+]);
 
 class TelegramBotService {
   constructor() {
     this.bot = null;
     this.initialized = false;
-    this.userStates = new Map(); // Store conversation state per user
-    this.tempPropertyData = new Map(); // Store temporary property data
-    this.userLanguages = new Map(); // Store user language preference
+    this.userStates = new Map();
+    this.tempPropertyData = new Map();
+    this.userLanguages = new Map();
+    this.onboardedChats = new Set();
+    this.processingCallbacks = new Set();
     this.messages = messages;
   }
 
   init() {
+    if (this.initialized) return;
+
     if (!config.telegram.botToken) {
       logger.warn('Telegram bot token not configured — Telegram features disabled');
       return;
@@ -39,60 +54,175 @@ class TelegramBotService {
     }
   }
 
-  setupCommandHandlers() {
-    this.bot.onText(/\/start/, (msg) => {
-      const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
+  getMsgs(lang) {
+    return getMessages(this.messages, lang);
+  }
 
-      const keyboard = {
-        inline_keyboard: [
-          [
-            { text: '🇪🇹 አማርኛ', callback_data: 'lang_am' },
-            { text: '🇬🇧 English', callback_data: 'lang_en' },
-            { text: '🇪🇹 Afaan Oromoo', callback_data: 'lang_or' }
-          ]
-        ]
-      };
+  async ensureUserContext(chatId, from) {
+    if (this.userLanguages.has(chatId)) {
+      return this.userLanguages.get(chatId);
+    }
 
-      this.bot.sendMessage(chatId, this.messages[lang].welcome, {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard
+    const user = await authRepository.findByTelegramChatId(chatId);
+    if (user?.preferredLanguage) {
+      const botLang = normalizeBotLang(user.preferredLanguage);
+      this.userLanguages.set(chatId, botLang);
+      this.onboardedChats.add(chatId);
+      return botLang;
+    }
+
+    return DEFAULT_LANGUAGE;
+  }
+
+  isUserOnboarded(chatId) {
+    return this.onboardedChats.has(chatId);
+  }
+
+  markUserOnboarded(chatId) {
+    this.onboardedChats.add(chatId);
+  }
+
+  async hasJoinedRequiredChannel(chatId) {
+    if (!config.telegram.channelId) {
+      return true;
+    }
+
+    try {
+      const member = await this.bot.getChatMember(config.telegram.channelId, chatId);
+      return ['creator', 'administrator', 'member'].includes(member?.status);
+    } catch (error) {
+      logger.warn('Failed to verify Telegram channel membership', {
+        chatId,
+        channelId: config.telegram.channelId,
+        error: error.message,
       });
-    });
+      return false;
+    }
+  }
 
-    this.bot.onText(/\/help/, (msg) => {
-      const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
-      const appButton = this.getAppInlineButton(this.messages[lang].downloadAppButton);
-      
-      this.bot.sendMessage(chatId, this.messages[lang].help, { 
-        ...(appButton && { reply_markup: { inline_keyboard: [[appButton]] } })
-      });
-    });
+  async persistUserLanguage(chatId, lang, from) {
+    const dbLang = normalizeDbLang(lang);
 
-    this.bot.onText(/\/post/, (msg) => {
-      const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
-      if (!this.userLanguages.has(chatId)) {
-        this.bot.sendMessage(chatId, 'Please select a language first using /start');
+    try {
+      let user = await authRepository.findByTelegramChatId(chatId);
+      if (user) {
+        await authRepository.updateUser(user._id, { preferredLanguage: dbLang });
         return;
       }
-      this.startPropertySubmission(chatId, msg.from, lang);
+
+      if (from?.username) {
+        user = await authRepository.findByPhone(`tg_${chatId}`);
+        if (user) {
+          await authRepository.updateUser(user._id, {
+            preferredLanguage: dbLang,
+            telegramChatId: String(chatId),
+            telegramUsername: from.username,
+          });
+        }
+      }
+    } catch (error) {
+      logger.warn('Failed to persist Telegram user language', {
+        chatId,
+        error: error.message,
+      });
+    }
+  }
+
+  async withCallbackLock(callbackId, chatId, handler) {
+    const lockKey = `${chatId}:${callbackId}`;
+    if (this.processingCallbacks.has(lockKey)) {
+      await this.bot.answerCallbackQuery(callbackId, {
+        text: 'Please wait...',
+        show_alert: false,
+      }).catch(() => {});
+      return;
+    }
+
+    this.processingCallbacks.add(lockKey);
+    try {
+      await handler();
+    } finally {
+      this.processingCallbacks.delete(lockKey);
+    }
+  }
+
+  isDestructiveCallback(data) {
+    if (DESTRUCTIVE_CALLBACKS.has(data)) return true;
+    return [...DESTRUCTIVE_CALLBACKS].some(
+      (prefix) => prefix.endsWith('_') && data.startsWith(prefix)
+    );
+  }
+
+  setupCommandHandlers() {
+    this.bot.onText(/\/start/, async (msg) => {
+      const chatId = msg.chat.id;
+      const lang = await this.ensureUserContext(chatId, msg.from);
+
+      if (this.isUserOnboarded(chatId)) {
+        await this.showReturningWelcome(chatId, lang);
+        return;
+      }
+
+      await this.showLanguageSelection(chatId, lang, true);
     });
 
-    this.bot.onText(/\/cancel/, (msg) => {
+    this.bot.onText(/\/menu/, async (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
+      const lang = await this.ensureUserContext(chatId, msg.from);
+
+      if (!this.userLanguages.has(chatId)) {
+        await this.bot.sendMessage(chatId, this.getMsgs(lang).selectLanguageFirst);
+        await this.showLanguageSelection(chatId, lang, true);
+        return;
+      }
+
+      await this.showMainMenu(chatId, lang);
+    });
+
+    this.bot.onText(/\/help/, async (msg) => {
+      const chatId = msg.chat.id;
+      const lang = await this.ensureUserContext(chatId, msg.from);
+      const msgs = this.getMsgs(lang);
+      const appButton = this.getAppInlineButton(msgs.downloadAppButton);
+
+      await this.bot.sendMessage(chatId, msgs.help, {
+        ...(appButton && { reply_markup: { inline_keyboard: [[appButton]] } }),
+      });
+    });
+
+    this.bot.onText(/\/post/, async (msg) => {
+      const chatId = msg.chat.id;
+      const lang = await this.ensureUserContext(chatId, msg.from);
+
+      if (!this.userLanguages.has(chatId)) {
+        await this.bot.sendMessage(chatId, this.getMsgs(lang).selectLanguageFirst);
+        return;
+      }
+
+      if (this.isUserOnboarded(chatId)) {
+        await this.showSellerListingMenu(chatId, lang);
+        return;
+      }
+
+      await this.startPropertySubmission(chatId, msg.from, lang);
+    });
+
+    this.bot.onText(/\/cancel/, async (msg) => {
+      const chatId = msg.chat.id;
+      const lang = await this.ensureUserContext(chatId, msg.from);
       this.cancelSubmission(chatId, lang);
+
+      if (this.isUserOnboarded(chatId)) {
+        await this.showMainMenu(chatId, lang);
+      }
     });
 
     this.bot.onText(/\/mylistings/, async (msg) => {
       const chatId = msg.chat.id;
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
+      const lang = await this.ensureUserContext(chatId, msg.from);
       await this.showUserListings(chatId, msg.from, lang);
     });
 
-    // Handle callback queries
     this.bot.on('callback_query', async (query) => {
       const chatId = query?.message?.chat?.id;
       const data = typeof query.data === 'string' ? query.data : '';
@@ -103,216 +233,228 @@ class TelegramBotService {
         return;
       }
 
-      if (data.startsWith('lang_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const selectedLang = data.replace('lang_', '');
-        this.userLanguages.set(chatId, selectedLang);
+      const runCallback = async () => {
+        if (data.startsWith('lang_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const selectedLang = data.replace('lang_', '');
+          this.userLanguages.set(chatId, selectedLang);
+          await this.persistUserLanguage(chatId, selectedLang, query.from);
 
-        await this.showChannelJoinPrompt(chatId, selectedLang);
-      } else if (data === 'continue_after_channel') {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.showPostLanguageOnboarding(chatId, lang);
-      } else if (data === 'user_buyer' || data === 'user_seller') {
-        await this.bot.answerCallbackQuery(query.id);
-        const userType = data === 'user_buyer' ? 'buyer' : 'seller';
+          const state = this.userStates.get(chatId);
+          if (state?.changingLanguage) {
+            this.userStates.delete(chatId);
+            await this.confirmLanguageChange(chatId, selectedLang);
+            return;
+          }
 
-        this.userStates.set(chatId, {
-          userType,
-          lang
-        });
+          const joinedChannel = await this.hasJoinedRequiredChannel(chatId);
+          if (joinedChannel) {
+            this.markUserOnboarded(chatId);
+            await this.showPostLanguageOnboarding(chatId, selectedLang);
+            return;
+          }
 
-        if (userType === 'seller') {
-          const productMsgs = this.messages[lang].product || this.messages.en.product;
-          const keyboard = {
-            inline_keyboard: [
-              [{ text: productMsgs.propertyOption, callback_data: 'post_property' }],
-              [{ text: productMsgs.productOption, callback_data: 'post_product' }]
-            ]
-          };
-
-          this.bot.sendMessage(chatId, `${productMsgs.postTitle}\n\n${productMsgs.chooseListingType}`, {
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
-          });
-        } else {
-          const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
-          const keyboard = {
-            inline_keyboard: [
-              [
-                { text: msgs.postRequirement, callback_data: 'post_requirement' },
-                { text: msgs.browseProperties, callback_data: 'browse_properties' }
-              ],
-              [
-                { text: msgs.searchByLocation, callback_data: 'search_location' }
-              ]
-            ]
-          };
-
-          this.bot.sendMessage(chatId, msgs.buyerInlinePrompt, {
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
-          });
-        }
-      } else if (data === 'post_property') {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.startPropertySubmission(chatId, query.from, lang);
-      } else if (data === 'post_product') {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.startProductSubmission(chatId, query.from, lang);
-      } else if (data.startsWith('cat_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.handleCategorySelectionCallback(chatId, data, lang);
-      } else if (data.startsWith('subcat_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.handleSubcategorySelectionCallback(chatId, data, lang);
-      } else if (data.startsWith('prodcat_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.handleProductCategorySelection(chatId, data.replace('prodcat_', ''), lang);
-      } else if (data.startsWith('prodsub_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.handleProductSubcategorySelection(chatId, data.replace('prodsub_', ''), lang);
-      } else if (data.startsWith('prodcond_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.handleProductConditionSelection(chatId, data.replace('prodcond_', ''), lang);
-      } else if (data === 'start_rent' || data === 'start_buy') {
-        await this.bot.answerCallbackQuery(query.id);
-        const listingType = data === 'start_rent' ? 'rent' : 'buy';
-        // Get the stored language preference
-        const storedLang = this.userLanguages.get(chatId) || lang;
-        this.startPropertySubmission(chatId, query.from, storedLang, listingType);
-      } else if (data === 'req_rent' || data === 'req_buy') {
-        await this.bot.answerCallbackQuery(query.id);
-        const requirementType = data === 'req_rent' ? 'rent' : 'buy';
-        const requirementData = this.tempPropertyData.get(chatId);
-        const state = this.userStates.get(chatId);
-        if (!requirementData || !state) return;
-
-        requirementData.requirement.listingType = requirementType;
-        state.step = 'req_category';
-        this.tempPropertyData.set(chatId, requirementData);
-        this.userStates.set(chatId, state);
-
-        const categoryOptions = requirementType === 'rent'
-          ? { rootSlug: 'properties', prompt: 'Select property type to rent:' }
-          : { prompt: 'What property or product do you want to buy?' };
-        const shown = await this.showCategorySelector(chatId, 'requirement', lang, categoryOptions);
-        if (!shown) {
-          state.step = 'req_title';
-          this.userStates.set(chatId, state);
-          this.bot.sendMessage(chatId, this.messages[lang].requirementTitle);
-        }
-      } else if (data === 'post_requirement') {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.startRequirementSubmission(chatId, lang);
-      } else if (data === 'browse_properties') {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.showBrowseProperties(chatId, lang);
-      } else if (data === 'my_listings') {
-        await this.bot.answerCallbackQuery(query.id);
-        await this.showUserListings(chatId, query.from, lang);
-      } else if (data === 'contact_support') {
-        await this.bot.answerCallbackQuery(query.id);
-        const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
-        this.userStates.set(chatId, { step: 'support_message', lang });
-        await this.bot.sendMessage(chatId, msgs.supportMessage);
-      } else if (data === 'search_location') {
-        await this.bot.answerCallbackQuery(query.id);
-        const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
-        this.bot.sendMessage(chatId, msgs.searchLocationPrompt, {
-          parse_mode: 'Markdown'
-        });
-        this.userStates.set(chatId, { step: 'search_location', lang: lang });
-      } else if (data.startsWith('type_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        this.handlePropertyTypeSelection(chatId, data.replace('type_', ''), lang);
-      } else if (data === 'images_done' || data === 'images_skip') {
-        await this.bot.answerCallbackQuery(query.id);
-        const state = this.userStates.get(chatId);
-        const propertyData = this.tempPropertyData.get(chatId);
-        if (state && propertyData) {
-          if (propertyData.imageControlsMessageId) {
-            await this.bot.editMessageReplyMarkup(
-              { inline_keyboard: [] },
-              { chat_id: chatId, message_id: propertyData.imageControlsMessageId }
-            ).catch((error) => {
-              logger.debug('Failed to clear image controls after image step', {
-                error: error.message,
-                chatId,
-                messageId: propertyData.imageControlsMessageId
-              });
+          await this.showChannelJoinPrompt(chatId, selectedLang);
+        } else if (data === 'continue_after_channel') {
+          await this.bot.answerCallbackQuery(query.id);
+          const joinedChannel = await this.hasJoinedRequiredChannel(chatId);
+          if (!joinedChannel) {
+            await this.bot.sendMessage(chatId, this.getMsgs(lang).channelJoinRequired, {
+              parse_mode: 'Markdown',
             });
-            delete propertyData.imageControlsMessageId;
+            await this.showChannelJoinPrompt(chatId, lang);
+            return;
           }
 
-          if (propertyData.marketplaceListing) {
-            await this.requestPaymentProof(chatId, false, lang);
-          } else if (propertyData.requirement) {
-            await this.showRequirementSummary(chatId, lang);
+          this.markUserOnboarded(chatId);
+          await this.showPostLanguageOnboarding(chatId, lang);
+        } else if (data === 'user_buyer' || data === 'user_seller') {
+          await this.bot.answerCallbackQuery(query.id);
+          const userType = data === 'user_buyer' ? 'buyer' : 'seller';
+
+          this.userStates.set(chatId, { userType, lang });
+
+          if (userType === 'seller') {
+            await this.showSellerListingMenu(chatId, lang);
           } else {
-            await this.requestPaymentProof(chatId, false, lang);
+            await this.showBuyerQuickActions(chatId, lang);
           }
-        }
-      } else if (data === 'submit_later') {
-        await this.bot.answerCallbackQuery(query.id);
-        const state = this.userStates.get(chatId);
-        const propertyData = this.tempPropertyData.get(chatId);
-        if (state && propertyData) {
-          if (propertyData.marketplaceListing) {
-            await this.submitProductToDatabase(chatId, propertyData, state, lang);
-          } else if (propertyData.requirement) {
-            // If payment proof already uploaded, finalize requirement
-            if (propertyData.paymentProof) {
-              await this.finalizeRequirementToDatabase(chatId, propertyData, lang);
+        } else if (data === 'post_property') {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.startPropertySubmission(chatId, query.from, lang);
+        } else if (data === 'post_product') {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.startProductSubmission(chatId, query.from, lang);
+        } else if (data.startsWith('cat_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.handleCategorySelectionCallback(chatId, data, lang);
+        } else if (data.startsWith('subcat_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.handleSubcategorySelectionCallback(chatId, data, lang);
+        } else if (data.startsWith('prodcat_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.handleProductCategorySelection(chatId, data.replace('prodcat_', ''), lang);
+        } else if (data.startsWith('prodsub_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.handleProductSubcategorySelection(chatId, data.replace('prodsub_', ''), lang);
+        } else if (data.startsWith('prodcond_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.handleProductConditionSelection(chatId, data.replace('prodcond_', ''), lang);
+        } else if (data === 'start_rent' || data === 'start_buy') {
+          await this.bot.answerCallbackQuery(query.id);
+          const listingType = data === 'start_rent' ? 'rent' : 'buy';
+          const storedLang = this.userLanguages.get(chatId) || lang;
+          this.startPropertySubmission(chatId, query.from, storedLang, listingType);
+        } else if (data === 'req_rent' || data === 'req_buy') {
+          await this.bot.answerCallbackQuery(query.id);
+          const requirementType = data === 'req_rent' ? 'rent' : 'buy';
+          const requirementData = this.tempPropertyData.get(chatId);
+          const state = this.userStates.get(chatId);
+          if (!requirementData || !state) return;
+
+          requirementData.requirement.listingType = requirementType;
+          state.step = 'req_title';
+          this.tempPropertyData.set(chatId, requirementData);
+          this.userStates.set(chatId, state);
+          
+          await this.bot.sendMessage(chatId, this.getMsgs(lang).requirementTitle, {
+            reply_markup: this.getMainReplyKeyboard(lang),
+          });
+        } else if (data === 'post_requirement') {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.startRequirementSubmission(chatId, lang);
+        } else if (data === 'browse_properties' || data.startsWith('browse_page_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const page = data.startsWith('browse_page_')
+            ? parseInt(data.replace('browse_page_', ''), 10) || 0
+            : 0;
+          await this.showBrowseProperties(chatId, lang, page);
+        } else if (data === 'my_listings') {
+          await this.bot.answerCallbackQuery(query.id);
+          await this.showUserListings(chatId, query.from, lang);
+        } else if (data === 'contact_support') {
+          await this.bot.answerCallbackQuery(query.id);
+          const msgs = this.getMsgs(lang);
+          this.userStates.set(chatId, { step: 'support_message', lang });
+          await this.bot.sendMessage(chatId, msgs.supportMessage, {
+            reply_markup: this.getMainReplyKeyboard(lang),
+          });
+        } else if (data === 'search_location') {
+          await this.bot.answerCallbackQuery(query.id);
+          const msgs = this.getMsgs(lang);
+          await this.bot.sendMessage(chatId, msgs.searchLocationPrompt, {
+            parse_mode: 'Markdown',
+            reply_markup: this.getMainReplyKeyboard(lang),
+          });
+          this.userStates.set(chatId, { step: 'search_location', lang });
+        } else if (data.startsWith('type_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          this.handlePropertyTypeSelection(chatId, data.replace('type_', ''), lang);
+        } else if (data === 'images_done' || data === 'images_skip') {
+          await this.bot.answerCallbackQuery(query.id);
+          const state = this.userStates.get(chatId);
+          const propertyData = this.tempPropertyData.get(chatId);
+          if (state && propertyData) {
+            if (propertyData.imageControlsMessageId) {
+              await this.bot.editMessageReplyMarkup(
+                { inline_keyboard: [] },
+                { chat_id: chatId, message_id: propertyData.imageControlsMessageId }
+              ).catch((error) => {
+                logger.debug('Failed to clear image controls after image step', {
+                  error: error.message,
+                  chatId,
+                  messageId: propertyData.imageControlsMessageId,
+                });
+              });
+              delete propertyData.imageControlsMessageId;
+            }
+
+            if (propertyData.marketplaceListing) {
+              await this.requestPaymentProof(chatId, false, lang);
+            } else if (propertyData.requirement) {
+              await this.showRequirementSummary(chatId, lang);
             } else {
-              // Prompt for payment proof (user may have skipped images)
               await this.requestPaymentProof(chatId, false, lang);
             }
-          } else {
-            await this.submitPropertyToDatabase(chatId, propertyData, state, lang);
           }
-        }
-      } else if (data === 'cancel_submission') {
-        await this.bot.answerCallbackQuery(query.id);
-        this.cancelSubmission(chatId, lang);
-      } else if (data.startsWith('approve_req_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const requirementId = data.replace('approve_req_', '');
-        await this.handleAdminRequirementApproval(chatId, requirementId, true, query.message);
-      } else if (data.startsWith('reject_req_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const requirementId = data.replace('reject_req_', '');
-        await this.handleAdminRequirementApproval(chatId, requirementId, false, query.message);
-      } else if (data.startsWith('approve_listing_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const listingId = data.replace('approve_listing_', '');
-        await this.handleAdminMarketplaceListingApproval(chatId, listingId, true, query.message);
-      } else if (data.startsWith('reject_listing_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const listingId = data.replace('reject_listing_', '');
-        await this.handleAdminMarketplaceListingApproval(chatId, listingId, false, query.message);
-      } else if (data.startsWith('approve_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const propertyId = data.replace('approve_', '');
-        await this.handleAdminApproval(chatId, propertyId, true, query.message);
-      } else if (data.startsWith('reject_')) {
-        await this.bot.answerCallbackQuery(query.id);
-        const propertyId = data.replace('reject_', '');
-        await this.handleAdminApproval(chatId, propertyId, false, query.message);
-      }
+        } else if (data === 'submit_later') {
+          await this.bot.answerCallbackQuery(query.id);
+          const state = this.userStates.get(chatId);
+          const propertyData = this.tempPropertyData.get(chatId);
 
-      this.bot.on('polling_error', (error) => {
-        logger.error('Telegram polling error', { error: error.message });
-      });
+          if (state?.submitting) return;
+          if (!state || !propertyData) return;
+
+          state.submitting = true;
+          this.userStates.set(chatId, state);
+
+          try {
+            if (propertyData.marketplaceListing) {
+              await this.submitProductToDatabase(chatId, propertyData, state, lang);
+            } else if (propertyData.requirement) {
+              if (propertyData.paymentProof) {
+                await this.finalizeRequirementToDatabase(chatId, propertyData, lang);
+              } else {
+                await this.requestPaymentProof(chatId, false, lang);
+              }
+            } else {
+              await this.submitPropertyToDatabase(chatId, propertyData, state, lang);
+            }
+          } finally {
+            const latestState = this.userStates.get(chatId);
+            if (latestState) {
+              delete latestState.submitting;
+              this.userStates.set(chatId, latestState);
+            }
+          }
+        } else if (data === 'cancel_submission') {
+          await this.bot.answerCallbackQuery(query.id);
+          this.cancelSubmission(chatId, lang);
+          if (this.isUserOnboarded(chatId)) {
+            await this.showMainMenu(chatId, lang);
+          }
+        } else if (data.startsWith('approve_req_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const requirementId = data.replace('approve_req_', '');
+          await this.handleAdminRequirementApproval(chatId, requirementId, true, query.message);
+        } else if (data.startsWith('reject_req_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const requirementId = data.replace('reject_req_', '');
+          await this.handleAdminRequirementApproval(chatId, requirementId, false, query.message);
+        } else if (data.startsWith('approve_listing_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const listingId = data.replace('approve_listing_', '');
+          await this.handleAdminMarketplaceListingApproval(chatId, listingId, true, query.message);
+        } else if (data.startsWith('reject_listing_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const listingId = data.replace('reject_listing_', '');
+          await this.handleAdminMarketplaceListingApproval(chatId, listingId, false, query.message);
+        } else if (data.startsWith('approve_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const propertyId = data.replace('approve_', '');
+          await this.handleAdminApproval(chatId, propertyId, true, query.message);
+        } else if (data.startsWith('reject_')) {
+          await this.bot.answerCallbackQuery(query.id);
+          const propertyId = data.replace('reject_', '');
+          await this.handleAdminApproval(chatId, propertyId, false, query.message);
+        }
+      };
+
+      if (this.isDestructiveCallback(data)) {
+        await this.withCallbackLock(query.id, chatId, runCallback);
+      } else {
+        await runCallback();
+      }
     });
 
-    // Handle text messages for property submission
     this.bot.on('message', async (msg) => {
       const chatId = msg.chat.id;
 
-      // Log chat ID for admin setup
-      console.log('Chat ID:', chatId);
+      if (config.env === 'development' && msg.text?.startsWith('/')) {
+        logger.debug('Telegram chat ID', { chatId });
+      }
 
-      const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
+      const lang = await this.ensureUserContext(chatId, msg.from);
       const state = this.userStates.get(chatId);
 
       if (msg.text && typeof msg.text === 'string' && !msg.text.startsWith('/')) {
@@ -323,7 +465,6 @@ class TelegramBotService {
           return;
         }
 
-        // Handle search location step
         if (state && state.step === 'support_message') {
           await this.handleSupportMessage(chatId, msg);
         } else if (state && state.step === 'search_location') {
@@ -337,7 +478,6 @@ class TelegramBotService {
         }
       }
 
-      // Handle photo uploads
       if (msg.photo) {
         await this.handlePhotoUpload(chatId, msg.photo, msg.from, lang);
       }
@@ -375,55 +515,67 @@ class TelegramBotService {
   }
 
   getMainReplyKeyboard(lang) {
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+    const msgs = this.getMsgs(lang);
 
     return {
       keyboard: [
         [
           { text: msgs.browseProperties },
-          { text: msgs.searchByLocation }
+          { text: msgs.searchByLocation },
+        ],
+        [
+          { text: msgs.postRequirement },
+          { text: msgs.seller },
         ],
         [
           { text: msgs.myListingsButton },
-          { text: msgs.supportButton }
+          { text: msgs.supportButton },
         ],
         [
-          { text: msgs.changeLanguageButton }
-        ]
+          { text: msgs.changeLanguageButton },
+        ],
       ],
       resize_keyboard: true,
       is_persistent: true,
-      one_time_keyboard: false
+      one_time_keyboard: false,
     };
   }
 
   getMainKeyboardAction(text, lang) {
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+    const msgs = this.getMsgs(lang);
     const actions = new Map([
       [msgs.browseProperties, 'browse_properties'],
       [msgs.searchByLocation, 'search_location'],
+      [msgs.postRequirement, 'post_requirement'],
+      [msgs.seller, 'user_seller'],
       [msgs.myListingsButton, 'my_listings'],
       [msgs.supportButton, 'contact_support'],
-      [msgs.changeLanguageButton, 'change_language']
+      [msgs.changeLanguageButton, 'change_language'],
     ]);
 
     return actions.get(text.trim());
   }
 
   async handleMainKeyboardAction(chatId, msg, action, lang) {
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+    const msgs = this.getMsgs(lang);
 
     if (action === 'browse_properties') {
       this.userStates.delete(chatId);
       this.tempPropertyData.delete(chatId);
-      await this.showBrowseProperties(chatId, lang);
+      await this.showBrowseProperties(chatId, lang, 0);
     } else if (action === 'search_location') {
       this.tempPropertyData.delete(chatId);
       this.userStates.set(chatId, { step: 'search_location', lang });
       await this.bot.sendMessage(chatId, msgs.searchLocationPrompt, {
         parse_mode: 'Markdown',
-        reply_markup: this.getMainReplyKeyboard(lang)
+        reply_markup: this.getMainReplyKeyboard(lang),
       });
+    } else if (action === 'post_requirement') {
+      this.tempPropertyData.delete(chatId);
+      await this.startRequirementSubmission(chatId, lang);
+    } else if (action === 'user_seller') {
+      this.userStates.set(chatId, { userType: 'seller', lang });
+      await this.showSellerListingMenu(chatId, lang);
     } else if (action === 'my_listings') {
       this.userStates.delete(chatId);
       this.tempPropertyData.delete(chatId);
@@ -432,22 +584,22 @@ class TelegramBotService {
       this.tempPropertyData.delete(chatId);
       this.userStates.set(chatId, { step: 'support_message', lang });
       await this.bot.sendMessage(chatId, msgs.supportMessage, {
-        reply_markup: this.getMainReplyKeyboard(lang)
+        reply_markup: this.getMainReplyKeyboard(lang),
       });
     } else if (action === 'change_language') {
-      this.userStates.delete(chatId);
+      this.userStates.set(chatId, { changingLanguage: true, lang });
       this.tempPropertyData.delete(chatId);
-      await this.showLanguageSelection(chatId, lang);
+      await this.showLanguageSelection(chatId, lang, false);
     }
   }
 
   async handleSupportMessage(chatId, msg) {
     const lang = this.userLanguages.get(chatId) || DEFAULT_LANGUAGE;
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+    const msgs = this.getMsgs(lang);
 
     if (!config.telegram.adminChatId) {
-      this.bot.sendMessage(chatId, msgs.supportUnavailable, {
-        reply_markup: this.getMainReplyKeyboard(lang)
+      await this.bot.sendMessage(chatId, msgs.supportUnavailable, {
+        reply_markup: this.getMainReplyKeyboard(lang),
       });
       this.userStates.delete(chatId);
       return;
@@ -457,18 +609,18 @@ class TelegramBotService {
     const username = from.username ? `@${from.username}` : 'N/A';
     const name = [from.first_name, from.last_name].filter(Boolean).join(' ') || 'Telegram User';
     const supportText = [
-      'New Telegram support request',
+      msgs.supportTicketHeader,
       `User: ${name}`,
       `Username: ${username}`,
       `Chat ID: ${chatId}`,
       '',
-      msg.text
+      msg.text,
     ].join('\n');
 
     await this.bot.sendMessage(config.telegram.adminChatId, supportText);
     this.userStates.delete(chatId);
-    this.bot.sendMessage(chatId, msgs.supportReceived, {
-      reply_markup: this.getMainReplyKeyboard(lang)
+    await this.bot.sendMessage(chatId, msgs.supportReceived, {
+      reply_markup: this.getMainReplyKeyboard(lang),
     });
   }
 
@@ -482,58 +634,123 @@ class TelegramBotService {
   }
 
   async showChannelJoinPrompt(chatId, lang) {
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+    const msgs = this.getMsgs(lang);
     const keyboard = {
       inline_keyboard: [
         [{ text: msgs.joinChannelButton, url: this.getChannelUrl() }],
-        [{ text: msgs.continueButton, callback_data: 'continue_after_channel' }]
-      ]
+        [{ text: msgs.continueButton, callback_data: 'continue_after_channel' }],
+      ],
     };
 
     await this.bot.sendMessage(chatId, msgs.joinChannelPrompt, {
       parse_mode: 'Markdown',
-      reply_markup: keyboard
+      reply_markup: keyboard,
     });
   }
 
   async showPostLanguageOnboarding(chatId, lang) {
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+    const msgs = this.getMsgs(lang);
 
     await this.bot.sendMessage(chatId, msgs.benefits, {
       parse_mode: 'Markdown',
-      reply_markup: this.getMainReplyKeyboard(lang)
+      reply_markup: this.getMainReplyKeyboard(lang),
     });
 
-    setTimeout(() => {
-      const keyboard = {
-        inline_keyboard: [
-          [
-            { text: msgs.buyer, callback_data: 'user_buyer' },
-            { text: msgs.seller, callback_data: 'user_seller' }
-          ]
-        ]
-      };
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: msgs.buyer, callback_data: 'user_buyer' },
+          { text: msgs.seller, callback_data: 'user_seller' },
+        ],
+      ],
+    };
 
-      this.bot.sendMessage(chatId, msgs.userTypeSelection, {
-        reply_markup: keyboard
-      });
-    }, 500);
+    await this.bot.sendMessage(chatId, msgs.userTypeSelection, {
+      reply_markup: keyboard,
+    });
   }
 
-  async showLanguageSelection(chatId, lang) {
-    const msgs = this.messages[lang] || this.messages[DEFAULT_LANGUAGE];
+  async showLanguageSelection(chatId, lang, isWelcome = false) {
+    const msgs = this.getMsgs(lang);
     const keyboard = {
       inline_keyboard: [
         [
           { text: '🇪🇹 አማርኛ', callback_data: 'lang_am' },
           { text: '🇬🇧 English', callback_data: 'lang_en' },
-          { text: '🇪🇹 Afaan Oromoo', callback_data: 'lang_or' }
-        ]
-      ]
+          { text: '🇪🇹 Afaan Oromoo', callback_data: 'lang_or' },
+        ],
+      ],
     };
 
-    await this.bot.sendMessage(chatId, msgs.selectLanguage, {
-      reply_markup: keyboard
+    // Send logo with welcome message for first-time users
+    if (isWelcome) {
+      const path = require('path');
+      const logoPath = path.join(__dirname, '../../../assets/logo1.png');
+      
+      try {
+        await this.bot.sendPhoto(chatId, logoPath, {
+          caption: msgs.welcome,
+          parse_mode: 'Markdown',
+          reply_markup: keyboard,
+        });
+      } catch (error) {
+        // Fallback to text-only if logo fails
+        logger.warn('Failed to send logo, falling back to text', { error: error.message });
+        await this.bot.sendMessage(chatId, msgs.welcome, {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard,
+        });
+      }
+    } else {
+      await this.bot.sendMessage(chatId, msgs.selectLanguage, {
+        reply_markup: keyboard,
+      });
+    }
+  }
+
+  async confirmLanguageChange(chatId, lang) {
+    const msgs = this.getMsgs(lang);
+    await this.bot.sendMessage(chatId, msgs.languageChanged, {
+      reply_markup: this.getMainReplyKeyboard(lang),
+    });
+  }
+
+  async showReturningWelcome(chatId, lang) {
+    const msgs = this.getMsgs(lang);
+    await this.bot.sendMessage(chatId, msgs.returningWelcome, {
+      parse_mode: 'Markdown',
+      reply_markup: this.getMainReplyKeyboard(lang),
+    });
+  }
+
+  async showMainMenu(chatId, lang) {
+    const msgs = this.getMsgs(lang);
+    await this.bot.sendMessage(chatId, msgs.mainMenuTitle, {
+      parse_mode: 'Markdown',
+      reply_markup: this.getMainReplyKeyboard(lang),
+    });
+  }
+
+  async showSellerListingMenu(chatId, lang) {
+    const msgs = this.getMsgs(lang);
+    const productMsgs = msgs.product || this.messages.en.product;
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: productMsgs.propertyOption, callback_data: 'post_property' }],
+        [{ text: productMsgs.productOption, callback_data: 'post_product' }],
+      ],
+    };
+
+    await this.bot.sendMessage(chatId, `${msgs.postSellerMenuPrompt}\n\n${productMsgs.chooseListingType}`, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    });
+  }
+
+  async showBuyerQuickActions(chatId, lang) {
+    const msgs = this.getMsgs(lang);
+    await this.bot.sendMessage(chatId, msgs.mainMenuPrompt, {
+      reply_markup: this.getMainReplyKeyboard(lang),
     });
   }
 }

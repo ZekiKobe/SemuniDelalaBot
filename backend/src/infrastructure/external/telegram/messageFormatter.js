@@ -225,8 +225,6 @@ const formatRequirementMessage = (requirement, lang = 'en') => {
   lines.push('');
   lines.push(`📝 ${escapeHtml(desc)}`);
   lines.push('');
-  lines.push(`🔗 <a href="${config.app.url}">${text.viewOnDelala}</a>`);
-
   lines.push(`📩 ${text.matchingCta} ${getBotUsername()}`);
   lines.push('');
   lines.push(`#${normalizeTag(requirement.location)} #${requirement.listingType === 'rent' ? 'ForRent' : 'ForSale'} #Requirement #Delala`);

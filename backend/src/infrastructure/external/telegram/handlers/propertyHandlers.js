@@ -30,6 +30,14 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
+// Helper to escape Markdown special characters
+function escapeMarkdown(text) {
+  if (!text) return text;
+  return String(text).replace(/([_*[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
+
+const BROWSE_PAGE_SIZE = 3;
+
 const escapeHtml = (text) => {
   if (text === undefined || text === null) return '';
   return String(text)
@@ -148,27 +156,23 @@ module.exports = {
     });
 
     if (listingType) {
-      const shown = await this.showCategorySelector(chatId, 'property', lang, {
-        rootSlug: 'properties',
-        prompt: 'Select property category:',
+      const nextState = this.userStates.get(chatId);
+      nextState.step = 'title';
+      this.userStates.set(chatId, nextState);
+      this.bot.sendMessage(chatId, this.getMsgs(lang).step1_title, {
+        reply_markup: this.getMainReplyKeyboard(lang),
       });
-      if (!shown) {
-        const nextState = this.userStates.get(chatId);
-        nextState.step = 'title';
-        this.userStates.set(chatId, nextState);
-        this.bot.sendMessage(chatId, this.messages[lang].step1_title);
-      }
     } else {
       const keyboard = {
         inline_keyboard: [
           [
-            { text: this.messages[lang].rent, callback_data: 'start_rent' },
-            { text: this.messages[lang].buy, callback_data: 'start_buy' }
+            { text: this.getMsgs(lang).rent, callback_data: 'start_rent' },
+            { text: this.getMsgs(lang).buy, callback_data: 'start_buy' }
           ]
         ]
       };
 
-      this.bot.sendMessage(chatId, this.messages[lang].step3_listingType, {
+      this.bot.sendMessage(chatId, this.getMsgs(lang).step3_listingType, {
         reply_markup: keyboard
       });
     }
@@ -179,7 +183,7 @@ module.exports = {
     if (!state) return;
 
     const propertyData = this.tempPropertyData.get(chatId);
-    const msgs = this.messages[lang];
+    const msgs = this.getMsgs(lang);
 
     switch (state.step) {
       case 'title':
@@ -274,7 +278,7 @@ module.exports = {
     const state = this.userStates.get(chatId);
     if (!state) return;
 
-    const msgs = this.messages[lang];
+    const msgs = this.getMsgs(lang);
 
     // Handle payment proof upload
     if (state.step === 'paymentProof') {
@@ -398,25 +402,29 @@ module.exports = {
   cancelSubmission(chatId, lang) {
     this.userStates.delete(chatId);
     this.tempPropertyData.delete(chatId);
-    this.bot.sendMessage(chatId, this.messages[lang].submissionCancelled);
+    const msgs = this.getMsgs(lang);
+    this.bot.sendMessage(chatId, msgs.submissionCancelled, {
+      ...(this.isUserOnboarded(chatId) && { reply_markup: this.getMainReplyKeyboard(lang) }),
+    });
   },
 
   async showUserListings(chatId, user, lang) {
     try {
-      this.bot.sendMessage(chatId, `
-📋 *Your Listings*
-
-To view your listings, please use our mobile app with the same phone number.
-Or contact support with your Telegram username: @${user.username || 'N/A'}
-      `, { parse_mode: 'Markdown' });
+      const msgs = this.getMsgs(lang);
+      const username = user?.username || 'N/A';
+      await this.bot.sendMessage(chatId, `${msgs.yourListingsTitle}\n\n${msgs.yourListingsBody.replace('{username}', username)}`, {
+        parse_mode: 'Markdown',
+        reply_markup: this.getMainReplyKeyboard(lang),
+      });
     } catch (error) {
       logger.error('Failed to show user listings', { error: error.message });
-      this.bot.sendMessage(chatId, '❌ Failed to retrieve your listings.');
+      this.bot.sendMessage(chatId, this.getMsgs(lang).failedListings);
     }
   },
 
-  async showBrowseProperties(chatId, lang) {
+  async showBrowseProperties(chatId, lang, page = 0) {
     try {
+      const msgs = this.getMsgs(lang);
       const [properties, marketplaceListings] = await Promise.all([
         propertyRepository.findApproved({}, { createdAt: -1 }),
         listingRepository.findApproved({}, { createdAt: -1 }),
@@ -436,14 +444,22 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
       ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
       if (browseItems.length === 0) {
-        this.bot.sendMessage(chatId, 'No approved listings are available at the moment. Please check back later.');
+        await this.bot.sendMessage(chatId, msgs.browseEmpty, {
+          reply_markup: this.getMainReplyKeyboard(lang),
+        });
         return;
       }
 
-      for (const [index, item] of browseItems.entries()) {
+      const totalPages = Math.ceil(browseItems.length / BROWSE_PAGE_SIZE);
+      const safePage = Math.max(0, Math.min(page, totalPages - 1));
+      const start = safePage * BROWSE_PAGE_SIZE;
+      const pageItems = browseItems.slice(start, start + BROWSE_PAGE_SIZE);
+
+      for (const [index, item] of pageItems.entries()) {
+        const globalIndex = start + index + 1;
         const caption = item.type === 'property'
-          ? formatBrowsePropertyCaption(item.record, index + 1, browseItems.length)
-          : formatBrowseMarketplaceCaption(item.record, index + 1, browseItems.length);
+          ? formatBrowsePropertyCaption(item.record, globalIndex, browseItems.length)
+          : formatBrowseMarketplaceCaption(item.record, globalIndex, browseItems.length);
         const imageSources = await resolveTelegramImageSources(item.record.images);
 
         if (imageSources.length === 1) {
@@ -466,18 +482,25 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
         }
       }
 
-      const keyboard = {
-        inline_keyboard: [[
-          { text: 'Refresh', callback_data: 'browse_properties' }
-        ]]
-      };
+      const navRow = [];
+      if (safePage > 0) {
+        navRow.push({ text: msgs.browsePrev, callback_data: `browse_page_${safePage - 1}` });
+      }
+      navRow.push({ text: msgs.browseRefresh, callback_data: `browse_page_${safePage}` });
+      if (safePage < totalPages - 1) {
+        navRow.push({ text: msgs.browseNext, callback_data: `browse_page_${safePage + 1}` });
+      }
 
-      await this.bot.sendMessage(chatId, 'End of listings.', {
-        reply_markup: keyboard
+      const endText = msgs.browseEnd
+        .replace('{current}', String(safePage + 1))
+        .replace('{total}', String(totalPages));
+
+      await this.bot.sendMessage(chatId, endText, {
+        reply_markup: { inline_keyboard: [navRow] },
       });
     } catch (error) {
       logger.error('Failed to browse properties', { error: error.message });
-      this.bot.sendMessage(chatId, 'Failed to load listings. Please try again later.');
+      this.bot.sendMessage(chatId, this.getMsgs(lang).failedBrowse);
     }
   },
 
@@ -490,12 +513,12 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
     state.step = 'price';
     this.userStates.set(chatId, state);
 
-    this.bot.sendMessage(chatId, this.messages[lang].step5_price);
+    this.bot.sendMessage(chatId, this.getMsgs(lang).step5_price);
   },
 
   async handleLocationSearch(chatId, location, lang) {
     try {
-      // Search for properties by city using the search method
+      const msgs = this.getMsgs(lang);
       const result = await propertyRepository.search(
         { city: location.toLowerCase(), status: 'approved' },
         { createdAt: -1 },
@@ -504,11 +527,16 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
       );
 
       if (!result || !result.data || result.data.length === 0) {
-        this.bot.sendMessage(chatId, `🔍 No properties found in "${location}".\n\nTry searching for a different city or browse all properties.`);
+        await this.bot.sendMessage(
+          chatId,
+          msgs.searchNoResults.replace('{location}', location),
+          { reply_markup: this.getMainReplyKeyboard(lang) }
+        );
+        this.userStates.delete(chatId);
         return;
       }
 
-      let message = `🔍 *Properties in ${location}*\n\n`;
+      let message = `${msgs.searchResultsTitle.replace('{location}', location)}\n\n`;
 
       result.data.forEach((property, index) => {
         message += `*${index + 1}. ${property.title}*\n`;
@@ -517,28 +545,25 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
         message += `🏢 ${property.propertyType}\n\n`;
       });
 
-      message += '📱 For more details and contact information, download our mobile app.';
+      message += msgs.searchAppPrompt;
 
-      const appButton = this.getAppInlineButton(this.messages[lang].downloadAppButton);
+      const appButton = this.getAppInlineButton(msgs.downloadAppButton);
       const keyboard = {
         inline_keyboard: [
           ...(appButton ? [[appButton]] : []),
-          [
-            { text: '🔍 Search Again', callback_data: 'search_location' }
-          ]
-        ]
+          [{ text: msgs.searchAgain, callback_data: 'search_location' }],
+        ],
       };
 
-      this.bot.sendMessage(chatId, message, {
+      await this.bot.sendMessage(chatId, message, {
         parse_mode: 'Markdown',
-        reply_markup: keyboard
+        reply_markup: keyboard,
       });
 
-      // Clear search state
       this.userStates.delete(chatId);
     } catch (error) {
       logger.error('Failed to search by location', { error: error.message });
-      this.bot.sendMessage(chatId, '❌ Failed to search properties. Please try again.');
+      this.bot.sendMessage(chatId, this.getMsgs(lang).failedSearch);
     }
   },
 
@@ -549,11 +574,10 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
     state.step = 'paymentProof';
     this.userStates.set(chatId, state);
 
-    const msgs = this.messages[lang];
-    const instructions = `${msgs.paymentRequired}\n- Telebirr: ${config.payment.telebirr.accountNumber} (${config.payment.telebirr.accountName})\n- CBE: ${config.payment.cbe.accountNumber} (${config.payment.cbe.accountName})\n\n${msgs.afterPayment}`;
+    const msgs = this.getMsgs(lang);
+    const combinedMessage = `${msgs.step9_paymentProof}\n\n${msgs.paymentRequired}\n- Telebirr: ${config.payment.telebirr.accountNumber} (${config.payment.telebirr.accountName})\n- CBE: ${config.payment.cbe.accountNumber} (${config.payment.cbe.accountName})\n\n${msgs.afterPayment}`;
 
-    this.bot.sendMessage(chatId, instructions);
-    this.bot.sendMessage(chatId, msgs.step9_paymentProof);
+    await this.bot.sendMessage(chatId, combinedMessage);
   },
 
   async showPropertySummary(chatId, lang) {
@@ -562,7 +586,7 @@ Or contact support with your Telegram username: @${user.username || 'N/A'}
 
     const propertyData = this.tempPropertyData.get(chatId);
     if (!propertyData) return;
-    const msgs = this.messages[lang];
+    const msgs = this.getMsgs(lang);
 
     const paymentStatus = propertyData.paymentProof ? '✅ Uploaded' : '❌ Not uploaded';
     const paymentInstructions = propertyData.paymentProof
@@ -682,10 +706,10 @@ ${msgs.downloadApp}
           const adminMessage = `
 💳 *New Payment Proof Received*
 
-*Property:* ${propertyData.title}
-*Price:* ${propertyData.rentPrice} ETB
-*Contact:* ${propertyData.contactPhone}
-*User:* @${state.username || 'N/A'}
+*Property:* ${escapeMarkdown(propertyData.title)}
+*Price:* ${escapeMarkdown(propertyData.rentPrice)} ETB
+*Contact:* ${escapeMarkdown(propertyData.contactPhone)}
+*User:* ${state.username ? '@' + escapeMarkdown(state.username) : 'N/A'}
 *Property ID:* ${property._id}
 *Payment ID:* ${payment._id}
 
@@ -717,11 +741,11 @@ Payment proof is attached for review.
       this.userStates.delete(chatId);
       this.tempPropertyData.delete(chatId);
 
-      this.bot.sendMessage(chatId, this.messages[lang].submitSuccess, { parse_mode: 'Markdown' });
+      this.bot.sendMessage(chatId, this.getMsgs(lang).submitSuccess, { parse_mode: 'Markdown' });
 
     } catch (error) {
       logger.error('Failed to submit property', { error: error.message });
-      this.bot.sendMessage(chatId, this.messages[lang].failedSubmit);
+      this.bot.sendMessage(chatId, this.getMsgs(lang).failedSubmit);
       this.cancelSubmission(chatId, lang);
     }
   }

@@ -169,4 +169,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iAmA => 'I am a';
+
+  @override
+  String get welcomeBack => 'Welcome back';
+
+  @override
+  String get signInSubtitle => 'Sign in to find your perfect home';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get saved => 'Saved';
+
+  @override
+  String get seeAll => 'See all';
+
+  @override
+  String get featured => 'Featured';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get joinDelalaSubtitle => 'Join Delala to find or list properties';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account? Sign in';
+
+  @override
+  String get signInToAccount => 'Sign in to your account';
+
+  @override
+  String get myAccount => 'My Account';
+
+  @override
+  String get listYourProperty => 'List Your Property';
+
+  @override
+  String get listYourPropertySubtitle => 'For owners & landlords';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get languageLabel => 'Language';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get languagePickerTitle => 'Choose Language';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get amharic => 'Amharic';
+
+  @override
+  String get oromo => 'Oromo';
+
+  @override
+  String get registrationFailed => 'Registration failed. Please try again.';
+
+  @override
+  String get enterFullName => 'Enter your full name';
+
+  @override
+  String get enterValidPhone => 'Enter valid Ethiopian phone';
+
+  @override
+  String get minPasswordLength => 'Min 6 characters';
+
+  @override
+  String get filters => 'Filters';
 }

@@ -7,7 +7,7 @@ class PropertyRepository {
   }
 
   async findById(id) {
-    return Property.findById(id).populate('createdBy', 'fullName phoneNumber profileImage');
+    return Property.findById(id).populate('createdBy', 'fullName phoneNumber profileImage preferredLanguage telegramChatId');
   }
 
   async findByIdRaw(id) {

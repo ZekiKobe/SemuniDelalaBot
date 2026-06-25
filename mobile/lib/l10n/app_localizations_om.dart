@@ -141,32 +141,115 @@ class AppLocalizationsOm extends AppLocalizations {
   String get loading => 'Fe\'aa jira...';
 
   @override
-  String get pendingApprovals => 'Pending Approvals';
+  String get pendingApprovals => 'Mirkaneessitoota Eegaa Jiran';
 
   @override
-  String get approve => 'Approve';
+  String get approve => 'Mirkaneessi';
 
   @override
-  String get reject => 'Reject';
+  String get reject => 'Didi';
 
   @override
-  String get viewProof => 'View Proof';
+  String get viewProof => 'Ragaa Ilaali';
 
   @override
-  String get rejectionReason => 'Rejection Reason';
+  String get rejectionReason => 'Sababa Diddaa';
 
   @override
-  String get propertyOwner => 'Property Owner';
+  String get propertyOwner => 'Abbaa Qabeenyaa';
 
   @override
-  String get buyer => 'Buyer';
+  String get buyer => 'Bitataa';
 
   @override
-  String get tenant => 'Tenant';
+  String get tenant => 'Kireeffataa';
 
   @override
-  String get selectUserType => 'Select User Type';
+  String get selectUserType => 'Gosa Fayyadamaa Filadhu';
 
   @override
-  String get iAmA => 'I am a';
+  String get iAmA => 'Ani';
+
+  @override
+  String get welcomeBack => 'Baga nagaan deebitan';
+
+  @override
+  String get signInSubtitle => 'Mana kee barbaachisuuf seeni';
+
+  @override
+  String get signIn => 'Seeni';
+
+  @override
+  String get home => 'Mana';
+
+  @override
+  String get search => 'Barbaadi';
+
+  @override
+  String get saved => 'Olkaa\'aman';
+
+  @override
+  String get seeAll => 'Hunda ilaali';
+
+  @override
+  String get featured => 'Filataman';
+
+  @override
+  String get createAccount => 'Akkaawuntii Uumi';
+
+  @override
+  String get joinDelalaSubtitle =>
+      'Qabeenya barbaachuuf ykn maxxansuuf Delala waliin makami';
+
+  @override
+  String get alreadyHaveAccount => 'Akkaawuntii qabdaa? Seeni';
+
+  @override
+  String get signInToAccount => 'Akkaawuntii kee seeni';
+
+  @override
+  String get myAccount => 'Akkaawuntii Koo';
+
+  @override
+  String get listYourProperty => 'Qabeenya Kee Maxxansi';
+
+  @override
+  String get listYourPropertySubtitle => 'Abbaa qabeenyaa fi kireeffataa';
+
+  @override
+  String get preferences => 'Filannoo';
+
+  @override
+  String get languageLabel => 'Afaan';
+
+  @override
+  String get signOut => 'Ba\'i';
+
+  @override
+  String get languagePickerTitle => 'Afaan Filadhu';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get amharic => 'Amaariffa';
+
+  @override
+  String get oromo => 'Afaan Oromoo';
+
+  @override
+  String get registrationFailed =>
+      'Galmeessi hin milkoofne. Irra deebi\'i yaali.';
+
+  @override
+  String get enterFullName => 'Maqaa guutuu kee galchi';
+
+  @override
+  String get enterValidPhone => 'Lakkoofsa bilbilaa Itoophiyaa sirrii galchi';
+
+  @override
+  String get minPasswordLength => 'Yoo xiqqaate qubee 6';
+
+  @override
+  String get filters => 'Calaluu';
 }

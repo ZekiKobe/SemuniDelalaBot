@@ -14,6 +14,10 @@ class AuthRepository {
     return User.findOne({ email: email?.toLowerCase() });
   }
 
+  async findByTelegramChatId(telegramChatId) {
+    return User.findOne({ telegramChatId: String(telegramChatId) });
+  }
+
   async findById(id) {
     return User.findById(id);
   }

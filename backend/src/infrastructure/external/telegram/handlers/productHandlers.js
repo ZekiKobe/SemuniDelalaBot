@@ -27,7 +27,8 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
-const productMessages = (messages, lang) => messages[lang]?.product || messages.en.product;
+const { normalizeBotLang } = require('../langUtils');
+const productMessages = (messages, lang) => messages[normalizeBotLang(lang)]?.product || messages.en.product;
 
 module.exports = {
   async startProductSubmission(chatId, user, lang) {
@@ -84,7 +85,7 @@ module.exports = {
     switch (state.step) {
       case 'product_title':
         if (value.length < 5) {
-          this.bot.sendMessage(chatId, this.messages[lang].titleTooShort);
+          this.bot.sendMessage(chatId, this.getMsgs(lang).titleTooShort);
           return;
         }
         product.title = value;
@@ -95,7 +96,7 @@ module.exports = {
 
       case 'product_description':
         if (value.length < 20) {
-          this.bot.sendMessage(chatId, this.messages[lang].descriptionTooShort);
+          this.bot.sendMessage(chatId, this.getMsgs(lang).descriptionTooShort);
           return;
         }
         product.description = value;
@@ -107,7 +108,7 @@ module.exports = {
       case 'product_price': {
         const price = Number(value.replace(/,/g, ''));
         if (!Number.isFinite(price) || price < 1) {
-          this.bot.sendMessage(chatId, this.messages[lang].invalidPrice);
+          this.bot.sendMessage(chatId, this.getMsgs(lang).invalidPrice);
           return;
         }
         product.price = price;
@@ -120,7 +121,7 @@ module.exports = {
       case 'product_location': {
         const parts = value.split(',').map((part) => part.trim()).filter(Boolean);
         if (parts.length < 1) {
-          this.bot.sendMessage(chatId, this.messages[lang].invalidLocation);
+          this.bot.sendMessage(chatId, this.getMsgs(lang).invalidLocation);
           return;
         }
         product.location = {
@@ -174,7 +175,7 @@ module.exports = {
         const phone = value.replace(/\s/g, '');
         const phoneRegex = /^\+?[0-9]{10,15}$/;
         if (!phoneRegex.test(phone)) {
-          this.bot.sendMessage(chatId, this.messages[lang].invalidPhone);
+          this.bot.sendMessage(chatId, this.getMsgs(lang).invalidPhone);
           return;
         }
         product.contactPhone = phone;
@@ -182,8 +183,8 @@ module.exports = {
         this.userStates.set(chatId, state);
         const imageKeyboard = {
           inline_keyboard: [
-            [{ text: this.messages[lang].doneImages, callback_data: 'images_done' }],
-            [{ text: this.messages[lang].skipImages, callback_data: 'images_skip' }],
+            [{ text: this.getMsgs(lang).doneImages, callback_data: 'images_done' }],
+            [{ text: this.getMsgs(lang).skipImages, callback_data: 'images_skip' }],
           ],
         };
         const imagePrompt = await this.bot.sendMessage(chatId, msgs.stepImages, { reply_markup: imageKeyboard });

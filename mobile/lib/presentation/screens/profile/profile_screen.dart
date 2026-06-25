@@ -3,20 +3,74 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/locale_provider.dart';
 import '../../widgets/bottom_nav_bar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  Future<void> _showLanguagePicker(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.languagePickerTitle, style: Theme.of(context).textTheme.titleLarge),
+            ),
+            ListTile(
+              title: Text(l10n.english),
+              trailing: ref.watch(localeProvider).languageCode == 'en'
+                  ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                  : null,
+              onTap: () => Navigator.pop(context, 'en'),
+            ),
+            ListTile(
+              title: Text(l10n.amharic),
+              trailing: ref.watch(localeProvider).languageCode == 'am'
+                  ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                  : null,
+              onTap: () => Navigator.pop(context, 'am'),
+            ),
+            ListTile(
+              title: Text(l10n.oromo),
+              trailing: ref.watch(localeProvider).languageCode == 'om'
+                  ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                  : null,
+              onTap: () => Navigator.pop(context, 'om'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (selected == null || !context.mounted) return;
+
+    final authState = ref.read(authProvider);
+    if (authState.isAuthenticated) {
+      await ref.read(authProvider.notifier).updatePreferredLanguage(selected);
+    } else {
+      await ref.read(localeProvider.notifier).setLocale(selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
     final user = authState.user;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text(l10n.profile, style: Theme.of(context).textTheme.headlineMedium),
       ),
       body: user == null
           ? Center(
@@ -25,11 +79,11 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   const Icon(Icons.person_outline_rounded, size: 64, color: AppColors.textMuted),
                   const SizedBox(height: 16),
-                  Text('Sign in to your account', style: Theme.of(context).textTheme.titleMedium),
+                  Text(l10n.signInToAccount, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () => context.push('/login'),
-                    child: const Text('Sign In'),
+                    child: Text(l10n.signIn),
                   ),
                 ],
               ),
@@ -67,24 +121,29 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 _MenuSection(
-                  title: 'My Account',
+                  title: l10n.myAccount,
                   items: [
-                    _MenuItem(icon: Icons.home_work_outlined, label: 'My Listings', onTap: () => context.push('/my-listings')),
+                    _MenuItem(icon: Icons.home_work_outlined, label: l10n.myListings, onTap: () => context.push('/my-listings')),
                     _MenuItem(
                       icon: Icons.add_home_work_outlined,
-                      label: 'List Your Property',
-                      subtitle: 'For owners & landlords',
+                      label: l10n.listYourProperty,
+                      subtitle: l10n.listYourPropertySubtitle,
                       onTap: () => context.push('/create-property'),
                     ),
                     if (user.isAdmin)
-                      _MenuItem(icon: Icons.dashboard_outlined, label: 'Admin Dashboard', onTap: () => context.push('/admin'), accent: true),
+                      _MenuItem(icon: Icons.dashboard_outlined, label: l10n.adminDashboard, onTap: () => context.push('/admin'), accent: true),
                   ],
                 ),
                 const SizedBox(height: 16),
                 _MenuSection(
-                  title: 'Preferences',
+                  title: l10n.preferences,
                   items: [
-                    _MenuItem(icon: Icons.language_rounded, label: 'Language', trailing: user.preferredLanguage.toUpperCase()),
+                    _MenuItem(
+                      icon: Icons.language_rounded,
+                      label: l10n.languageLabel,
+                      trailing: ref.watch(localeProvider).languageCode.toUpperCase(),
+                      onTap: () => _showLanguagePicker(context, ref),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -92,7 +151,7 @@ class ProfileScreen extends ConsumerWidget {
                   items: [
                     _MenuItem(
                       icon: Icons.logout_rounded,
-                      label: 'Sign Out',
+                      label: l10n.signOut,
                       isDestructive: true,
                       onTap: () async {
                         await ref.read(authProvider.notifier).logout();
@@ -122,18 +181,18 @@ class _MenuSection extends StatelessWidget {
         if (title != null) ...[
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 8),
-            child: Text(title!, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+            child: Text(title!, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.textMuted)),
           ),
         ],
         Container(
           decoration: AppDecorations.card(),
           child: Column(
-            children: items.asMap().entries.map((entry) {
-              final isLast = entry.key == items.length - 1;
+            children: items.map((item) {
+              final isLast = item == items.last;
               return Column(
                 children: [
-                  entry.value,
-                  if (!isLast) const Divider(height: 1, indent: 56),
+                  item,
+                  if (!isLast) Divider(height: 1, indent: 56, color: AppColors.border.withValues(alpha: 0.5)),
                 ],
               );
             }).toList(),
@@ -165,25 +224,15 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.error : accent ? AppColors.accent : AppColors.textPrimary;
+    final color = isDestructive ? AppColors.error : (accent ? AppColors.primary : AppColors.textPrimary);
 
     return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: (isDestructive ? AppColors.error : accent ? AppColors.accent : AppColors.primary)
-              .withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, size: 20, color: color),
-      ),
-      title: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: color)),
-      subtitle: subtitle != null ? Text(subtitle!, style: Theme.of(context).textTheme.bodySmall) : null,
+      leading: Icon(icon, color: color),
+      title: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+      subtitle: subtitle != null ? Text(subtitle!) : null,
       trailing: trailing != null
-          ? Text(trailing!, style: Theme.of(context).textTheme.bodySmall)
-          : onTap != null
-              ? const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted)
-              : null,
+          ? Text(trailing!, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textMuted))
+          : (onTap != null ? const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted) : null),
       onTap: onTap,
     );
   }

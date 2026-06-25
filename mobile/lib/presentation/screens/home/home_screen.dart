@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../providers/property_provider.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/property_card.dart';
@@ -14,6 +15,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final featured = ref.watch(featuredPropertiesProvider);
     final newest = ref.watch(newPropertiesProvider);
     final popular = ref.watch(popularPropertiesProvider);
@@ -39,23 +41,23 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(child: _HeroBanner()),
               SliverToBoxAdapter(
                 child: SectionHeader(
-                  title: 'Featured',
-                  actionLabel: 'See all',
+                  title: l10n.featured,
+                  actionLabel: l10n.seeAll,
                   onAction: () => context.push('/search'),
                 ),
               ),
               SliverToBoxAdapter(child: _HorizontalList(asyncValue: featured)),
               SliverToBoxAdapter(
                 child: SectionHeader(
-                  title: 'New Listings',
-                  actionLabel: 'See all',
+                  title: l10n.newListings,
+                  actionLabel: l10n.seeAll,
                   onAction: () => context.push('/search'),
                 ),
               ),
               SliverToBoxAdapter(child: _HorizontalList(asyncValue: newest)),
-              const SliverToBoxAdapter(child: SectionHeader(title: 'Most Viewed')),
+              SliverToBoxAdapter(child: SectionHeader(title: l10n.mostViewed)),
               SliverToBoxAdapter(child: _HorizontalList(asyncValue: popular)),
-              const SliverToBoxAdapter(child: SectionHeader(title: 'Popular Areas')),
+              SliverToBoxAdapter(child: SectionHeader(title: l10n.popularAreas)),
               SliverToBoxAdapter(
                 child: areas.when(
                   data: (areaList) => Padding(

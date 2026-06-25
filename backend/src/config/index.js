@@ -30,6 +30,7 @@ const config = {
     channelUrl: process.env.TELEGRAM_CHANNEL_URL || '',
     adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
+    enablePolling: process.env.ENABLE_TELEGRAM_POLLING === 'true',
   },
 
   firebase: {

@@ -27,7 +27,14 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
-const productMessages = (messages, lang) => messages[lang]?.product || messages.en.product;
+const { normalizeBotLang } = require('../langUtils');
+
+// Helper to escape Markdown special characters
+function escapeMarkdown(text) {
+  if (!text) return text;
+  return String(text).replace(/([_*[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
+const productMessages = (messages, lang) => messages[normalizeBotLang(lang)]?.product || messages.en.product;
 
 module.exports = {
   async showProductSummary(chatId, lang) {
@@ -58,10 +65,10 @@ ${msgs.submitQuestion}
     const keyboard = {
       inline_keyboard: [
         ...(data.paymentProof ? [[
-          { text: this.messages[lang].submit, callback_data: 'submit_later' },
-          { text: this.messages[lang].cancel, callback_data: 'cancel_submission' },
+          { text: this.getMsgs(lang).submit, callback_data: 'submit_later' },
+          { text: this.getMsgs(lang).cancel, callback_data: 'cancel_submission' },
         ]] : [[
-          { text: this.messages[lang].cancel, callback_data: 'cancel_submission' },
+          { text: this.getMsgs(lang).cancel, callback_data: 'cancel_submission' },
         ]]),
       ],
     };
@@ -128,9 +135,9 @@ ${msgs.submitQuestion}
         const adminMessage = `
 New marketplace product payment proof received
 
-Title: ${listing.title}
-Price: ${listing.price} ETB
-Contact: ${listing.contactPhone}
+Title: ${escapeMarkdown(listing.title)}
+Price: ${escapeMarkdown(listing.price)} ETB
+Contact: ${escapeMarkdown(listing.contactPhone)}
 Listing ID: ${listing._id}
         `;
 

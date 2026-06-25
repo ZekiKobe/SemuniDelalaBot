@@ -29,7 +29,8 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
-const productMessages = (messages, lang) => messages[lang]?.product || messages.en.product;
+const { normalizeBotLang } = require('../langUtils');
+const productMessages = (messages, lang) => messages[normalizeBotLang(lang)]?.product || messages.en.product;
 
 async function clearApprovalButtons(bot, fallbackChatId, message) {
   const chatId = message?.chat?.id || fallbackChatId;

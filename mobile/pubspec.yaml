@@ -28,6 +28,7 @@ dependencies:
   google_maps_flutter: ^2.10.0
   flutter_screenutil: ^5.9.3
   connectivity_plus: ^6.1.1
+  shared_preferences: ^2.3.5
   json_annotation: ^4.9.0
   freezed_annotation: ^2.4.4
 

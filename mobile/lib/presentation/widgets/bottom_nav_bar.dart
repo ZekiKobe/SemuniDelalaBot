@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_decorations.dart';
+import '../../l10n/app_localizations.dart';
 
 class DelalaBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -10,6 +11,8 @@ class DelalaBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       decoration: BoxDecoration(
@@ -39,26 +42,26 @@ class DelalaBottomNav extends StatelessWidget {
                 context.go('/profile');
             }
           },
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
-              label: 'Home',
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home_rounded, color: AppColors.primary),
+              label: l10n.home,
             ),
             NavigationDestination(
-              icon: Icon(Icons.search_rounded),
-              selectedIcon: Icon(Icons.search_rounded, color: AppColors.primary),
-              label: 'Search',
+              icon: const Icon(Icons.search_rounded),
+              selectedIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
+              label: l10n.search,
             ),
             NavigationDestination(
-              icon: Icon(Icons.favorite_border_rounded),
-              selectedIcon: Icon(Icons.favorite_rounded, color: AppColors.primary),
-              label: 'Saved',
+              icon: const Icon(Icons.favorite_border_rounded),
+              selectedIcon: const Icon(Icons.favorite_rounded, color: AppColors.primary),
+              label: l10n.saved,
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
-              label: 'Profile',
+              icon: const Icon(Icons.person_outline_rounded),
+              selectedIcon: const Icon(Icons.person_rounded, color: AppColors.primary),
+              label: l10n.profile,
             ),
           ],
         ),

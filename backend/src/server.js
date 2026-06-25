@@ -10,7 +10,9 @@ const { startJobs } = require('./jobs');
 const startServer = async () => {
   await connectDatabase();
   await settingsService.seedDefaults();
-  telegramService.init();
+  if (config.telegram.enablePolling) {
+    telegramService.init();
+  }
   await fcmService.init();
   startJobs();
 

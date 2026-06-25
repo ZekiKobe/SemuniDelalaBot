@@ -27,7 +27,13 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
-const normalizePreferredLanguage = (lang = 'en') => (lang === 'or' ? 'om' : lang);
+const { normalizeBotLang, normalizeDbLang } = require('../langUtils');
+
+// Helper to escape Markdown special characters
+function escapeMarkdown(text) {
+  if (!text) return text;
+  return String(text).replace(/([_*[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
 
 module.exports = {
   getRequirementTypeLabel(listingType) {
@@ -47,13 +53,13 @@ module.exports = {
     const keyboard = {
       inline_keyboard: [
         [
-          { text: this.messages[lang].requirementRent, callback_data: 'req_rent' },
-          { text: this.messages[lang].requirementBuy, callback_data: 'req_buy' }
+          { text: this.getMsgs(lang).requirementRent, callback_data: 'req_rent' },
+          { text: this.getMsgs(lang).requirementBuy, callback_data: 'req_buy' }
         ]
       ]
     };
 
-    this.bot.sendMessage(chatId, this.messages[lang].requirementListingType, {
+    this.bot.sendMessage(chatId, this.getMsgs(lang).requirementListingType, {
       parse_mode: 'Markdown',
       reply_markup: keyboard
     });
@@ -64,7 +70,7 @@ module.exports = {
     if (!state) return;
 
     const requirementData = this.tempPropertyData.get(chatId);
-    const msgs = this.messages[lang];
+    const msgs = this.getMsgs(lang);
 
     switch (state.step) {
       case 'req_title':
@@ -103,7 +109,7 @@ module.exports = {
 
       case 'req_location':
         if (text.length < 3) {
-          this.bot.sendMessage(chatId, '❌ Location too short. Please enter a valid location.');
+          this.bot.sendMessage(chatId, msgs.locationTooShort);
           return;
         }
         requirementData.requirement.location = text;
@@ -149,7 +155,7 @@ module.exports = {
           fullName: 'Telegram User',
           telegramUsername: 'unknown',
           telegramChatId: String(chatId),
-          preferredLanguage: normalizePreferredLanguage(lang),
+          preferredLanguage: normalizeDbLang(lang),
           role: 'user',
           password: Math.random().toString(36).slice(-8),
         });
@@ -164,7 +170,7 @@ module.exports = {
         requirement: data.requirement,
         userId: user._id,
         requirementId,
-        preferredLanguage: normalizePreferredLanguage(lang),
+        preferredLanguage: normalizeDbLang(lang),
         images: data.images || [],
       });
 
@@ -173,7 +179,7 @@ module.exports = {
         requirement: data.requirement,
         userId: user._id,
         chatId: chatId,
-        preferredLanguage: normalizePreferredLanguage(lang),
+        preferredLanguage: normalizeDbLang(lang),
       });
 
       // Set user state to expect payment proof
@@ -182,11 +188,10 @@ module.exports = {
       this.userStates.set(chatId, state);
 
       // Send payment instructions and request proof
-      const msgs = this.messages[lang];
-      const instructions = `${msgs.paymentRequired}\n• Telebirr: ${config.payment.telebirr.accountNumber} (${config.payment.telebirr.accountName})\n• CBE: ${config.payment.cbe.accountNumber} (${config.payment.cbe.accountName})\n\n${msgs.afterPayment}`;
+      const msgs = this.getMsgs(lang);
+      const combinedMessage = `${msgs.step9_paymentProof}\n\n${msgs.paymentRequired}\n• Telebirr: ${config.payment.telebirr.accountNumber} (${config.payment.telebirr.accountName})\n• CBE: ${config.payment.cbe.accountNumber} (${config.payment.cbe.accountName})\n\n${msgs.afterPayment}`;
 
-      this.bot.sendMessage(chatId, instructions);
-      this.bot.sendMessage(chatId, msgs.step9_paymentProof);
+      await this.bot.sendMessage(chatId, combinedMessage);
 
       return;
     } catch (error) {
@@ -205,7 +210,7 @@ module.exports = {
     if (!data || !data.requirement) return;
 
     const req = data.requirement;
-    const msgs = this.messages[lang];
+    const msgs = this.getMsgs(lang);
 
     const paymentStatus = data.paymentProof ? '✅ Uploaded' : '❌ Not uploaded';
     const paymentInstructions = data.paymentProof
@@ -264,7 +269,7 @@ ${msgs.downloadApp}
           fullName: 'Telegram User',
           telegramUsername: 'unknown',
           telegramChatId: String(chatId),
-          preferredLanguage: normalizePreferredLanguage(lang),
+          preferredLanguage: normalizeDbLang(lang),
           role: 'user',
           password: Math.random().toString(36).slice(-8),
         });
@@ -277,11 +282,9 @@ ${msgs.downloadApp}
         budget: data.requirement.budget,
         location: data.requirement.location,
         listingType: data.requirement.listingType || 'rent',
-        categoryId: data.requirement.categoryId,
-        subcategoryId: data.requirement.subcategoryId,
         contactPhone: data.requirement.contactPhone,
         createdBy: user._id,
-        preferredLanguage: data.preferredLanguage || normalizePreferredLanguage(lang),
+        preferredLanguage: data.preferredLanguage || normalizeDbLang(lang),
         status: data.paymentProof ? 'pending_approval' : 'pending_payment',
         paymentProof: data.paymentProof || undefined,
       });
@@ -300,11 +303,11 @@ ${msgs.downloadApp}
       this.tempPropertyData.delete(chatId);
 
       // Notify user of success
-      this.bot.sendMessage(chatId, this.messages[lang].requirementSuccess);
+      this.bot.sendMessage(chatId, this.getMsgs(lang).requirementSuccess);
 
       // Notify admin with approve/reject actions
       if (config.telegram.adminChatId) {
-        const adminMessage = `💳 *New Requirement Payment Proof*\n\n*Title:* ${reqDoc.title}\n*Budget:* ${reqDoc.budget} ETB\n*Contact:* ${reqDoc.contactPhone}\n*Requirement ID:* ${reqDoc._id}\n\nReview and approve or reject:`;
+        const adminMessage = `💳 *New Requirement Payment Proof*\n\n*Title:* ${escapeMarkdown(reqDoc.title)}\n*Budget:* ${escapeMarkdown(reqDoc.budget)} ETB\n*Contact:* ${escapeMarkdown(reqDoc.contactPhone)}\n*Requirement ID:* ${reqDoc._id}\n\nReview and approve or reject:`;
 
         const keyboard = {
           inline_keyboard: [

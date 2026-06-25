@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_decorations.dart';
 import '../../../core/utils/phone_validator.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/delala_button.dart';
 
@@ -44,13 +45,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       context.go('/');
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration failed. Please try again.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.registrationFailed)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
 
     return Scaffold(
@@ -68,43 +70,43 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Create Account', style: Theme.of(context).textTheme.displayMedium),
+                Text(l10n.createAccount, style: Theme.of(context).textTheme.displayMedium),
                 const SizedBox(height: 8),
-                Text('Join Delala to find or list properties', style: Theme.of(context).textTheme.bodyMedium),
+                Text(l10n.joinDelalaSubtitle, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _nameController,
-                  decoration: AppDecorations.inputDecoration(label: 'Full Name', prefixIcon: Icons.person_outline),
-                  validator: (v) => v == null || v.length < 2 ? 'Enter your full name' : null,
+                  decoration: AppDecorations.inputDecoration(label: l10n.fullName, prefixIcon: Icons.person_outline),
+                  validator: (v) => v == null || v.length < 2 ? l10n.enterFullName : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  decoration: AppDecorations.inputDecoration(label: 'Phone Number', hint: '09XXXXXXXX', prefixIcon: Icons.phone_outlined),
-                  validator: (v) => v == null || !isValidEthiopianPhone(v) ? 'Enter valid Ethiopian phone' : null,
+                  decoration: AppDecorations.inputDecoration(label: l10n.phoneNumber, hint: '09XXXXXXXX', prefixIcon: Icons.phone_outlined),
+                  validator: (v) => v == null || !isValidEthiopianPhone(v) ? l10n.enterValidPhone : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: AppDecorations.inputDecoration(label: 'Email (Optional)', prefixIcon: Icons.email_outlined),
+                  decoration: AppDecorations.inputDecoration(label: l10n.email, prefixIcon: Icons.email_outlined),
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: AppDecorations.inputDecoration(label: 'Password', prefixIcon: Icons.lock_outline_rounded),
-                  validator: (v) => v == null || v.length < 6 ? 'Min 6 characters' : null,
+                  decoration: AppDecorations.inputDecoration(label: l10n.password, prefixIcon: Icons.lock_outline_rounded),
+                  validator: (v) => v == null || v.length < 6 ? l10n.minPasswordLength : null,
                 ),
                 const SizedBox(height: 28),
-                DelalaButton(label: 'Create Account', onPressed: _register, isLoading: authState.isLoading),
+                DelalaButton(label: l10n.createAccount, onPressed: _register, isLoading: authState.isLoading),
                 const SizedBox(height: 16),
                 Center(
                   child: GestureDetector(
                     onTap: () => context.pop(),
                     child: Text(
-                      'Already have an account? Sign in',
+                      l10n.alreadyHaveAccount,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.accent,
                             fontWeight: FontWeight.w600,

@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "bot": "node start-bot.js",
+    "bot:dev": "nodemon start-bot.js",
     "seed": "node src/scripts/seed.js",
     "seed:marketplace": "node src/scripts/seedMarketplaceCategories.js",
     "lint": "eslint src/",

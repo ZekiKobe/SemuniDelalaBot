@@ -27,14 +27,25 @@ const {
   TelegramPostType,
 } = require('../../../../domain/enums');
 
+const { normalizeBotLang } = require('../langUtils');
+
 module.exports = {
-  async postListingToChannel(property, lang = 'en') {
+  async postListingToChannel(property, lang) {
     if (!this.isReady() || !config.telegram.channelId) {
       logger.warn('Telegram not configured — skipping channel post');
       return null;
     }
 
-    const message = formatListingMessage(property, lang);
+    let resolvedLang = lang;
+    if (!resolvedLang && property?.createdBy) {
+      const owner = typeof property.createdBy === 'object' && property.createdBy.preferredLanguage
+        ? property.createdBy
+        : await authRepository.findById(property.createdBy?._id || property.createdBy);
+      resolvedLang = normalizeBotLang(owner?.preferredLanguage || 'en');
+    }
+    resolvedLang = normalizeBotLang(resolvedLang || 'en');
+
+    const message = formatListingMessage(property, resolvedLang);
     const imagePaths = (property.images || [])
       .sort((a, b) => a.order - b.order)
       .map((img) => path.join(process.cwd(), img.url.replace(/^\//, '')))

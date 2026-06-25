@@ -169,4 +169,85 @@ class AppLocalizationsAm extends AppLocalizations {
 
   @override
   String get iAmA => 'እኔ ነኝ';
+
+  @override
+  String get welcomeBack => 'እንኳን ደህና ተመለሱ';
+
+  @override
+  String get signInSubtitle => 'የሚያስደስትዎን ቤት ለማግኘት ይግቡ';
+
+  @override
+  String get signIn => 'ግባ';
+
+  @override
+  String get home => 'መነሻ';
+
+  @override
+  String get search => 'ፍለጋ';
+
+  @override
+  String get saved => 'የተቀመጡ';
+
+  @override
+  String get seeAll => 'ሁሉንም ይመልከቱ';
+
+  @override
+  String get featured => 'የተመረጡ';
+
+  @override
+  String get createAccount => 'መለያ ፍጠር';
+
+  @override
+  String get joinDelalaSubtitle => 'ንብረት ለማግኘት ወይም ለመለጠፍ ደላላን ይቀላቀሉ';
+
+  @override
+  String get alreadyHaveAccount => 'መለያ አለዎት? ይግቡ';
+
+  @override
+  String get signInToAccount => 'ወደ መለያዎ ይግቡ';
+
+  @override
+  String get myAccount => 'መለያዬ';
+
+  @override
+  String get listYourProperty => 'ንብረትዎን ይለጥፉ';
+
+  @override
+  String get listYourPropertySubtitle => 'ለባለቤቶች እና አከራዮች';
+
+  @override
+  String get preferences => 'ምርጫዎች';
+
+  @override
+  String get languageLabel => 'ቋንቋ';
+
+  @override
+  String get signOut => 'ውጣ';
+
+  @override
+  String get languagePickerTitle => 'ቋንቋ ይምረጡ';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get amharic => 'አማርኛ';
+
+  @override
+  String get oromo => 'Afaan Oromoo';
+
+  @override
+  String get registrationFailed => 'መመዝገብ አልተሳካም። እንደገና ይሞክሩ።';
+
+  @override
+  String get enterFullName => 'ሙሉ ስምዎን ያስገቡ';
+
+  @override
+  String get enterValidPhone => 'ትክክለኛ የኢትዮጵያ ስልክ ያስገቡ';
+
+  @override
+  String get minPasswordLength => 'ቢያንስ 6 ፊደሎች';
+
+  @override
+  String get filters => 'ማጣሪያዎች';
 }
