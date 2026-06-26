@@ -12,7 +12,7 @@ on:
       deploy_mode:
         description: 'Deploy mode'
         required: true
-        default: bot
+        default: full
         type: choice
         options:
           - bot
@@ -44,5 +44,5 @@ jobs:
           script: |
             set -euo pipefail
             export APP_DIR="${{ secrets.VPS_APP_DIR || '/opt/delala' }}"
-            export DEPLOY_MODE="${{ github.event.inputs.deploy_mode || secrets.VPS_DEPLOY_MODE || 'bot' }}"
+            export DEPLOY_MODE="${{ github.event.inputs.deploy_mode || secrets.VPS_DEPLOY_MODE || 'full' }}"
             bash "$APP_DIR/scripts/vps-deploy.sh"

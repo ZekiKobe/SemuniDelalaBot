@@ -2,12 +2,12 @@
 # Runs ON THE VPS after git pull. Called by GitHub Actions over SSH.
 # Bare Node + PM2 (no Docker).
 #
-# DEPLOY_MODE=bot   — Telegram bot only (default, 1GB VPS)
-# DEPLOY_MODE=full  — API + bot (needs more RAM)
+# DEPLOY_MODE=full  — API + bot (default)
+# DEPLOY_MODE=bot   — Telegram bot only
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/delala}"
-DEPLOY_MODE="${DEPLOY_MODE:-bot}"
+DEPLOY_MODE="${DEPLOY_MODE:-full}"
 
 cd "$APP_DIR"
 
@@ -38,24 +38,7 @@ npm ci --omit=dev
 mkdir -p logs
 
 echo "==> Restarting PM2 (mode: $DEPLOY_MODE)..."
-if [[ "$DEPLOY_MODE" == "full" ]]; then
-  pm2 startOrReload ecosystem.config.js --env production
-  pm2 save
-
-  echo "==> Health check (API)..."
-  for i in {1..30}; do
-    if curl -fsS "http://127.0.0.1:${PORT:-5000}/api/v1/health" >/dev/null; then
-      echo "API is healthy."
-      pm2 status
-      exit 0
-    fi
-    sleep 2
-  done
-
-  echo "ERROR: API health check failed."
-  pm2 logs delala-api --lines 80 --nostream
-  exit 1
-else
+if [[ "$DEPLOY_MODE" == "bot" ]]; then
   pm2 startOrReload ecosystem.bot.config.js --env production
   pm2 save
 
@@ -73,3 +56,37 @@ else
   pm2 logs delala-bot --lines 80 --nostream
   exit 1
 fi
+
+pm2 startOrReload ecosystem.config.js --env production
+pm2 save
+
+echo "==> Health check (API + bot)..."
+api_ok=false
+bot_ok=false
+
+for i in {1..30}; do
+  if curl -fsS "http://127.0.0.1:${PORT:-5000}/api/v1/health" >/dev/null; then
+    api_ok=true
+    break
+  fi
+  sleep 2
+done
+
+for i in {1..15}; do
+  if pm2 describe delala-bot 2>/dev/null | grep -q "status.*online"; then
+    bot_ok=true
+    break
+  fi
+  sleep 2
+done
+
+if [[ "$api_ok" == true && "$bot_ok" == true ]]; then
+  echo "API and bot are healthy."
+  pm2 status
+  exit 0
+fi
+
+echo "ERROR: Deploy health check failed (api=$api_ok, bot=$bot_ok)."
+pm2 logs delala-api --lines 40 --nostream
+pm2 logs delala-bot --lines 40 --nostream
+exit 1
