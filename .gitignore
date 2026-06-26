@@ -4,8 +4,6 @@ node_modules/
 .pnp.js
 
 # Environment
-.env
-.env.local
 .env.*.local
 
 # Logs
@@ -50,3 +48,4 @@ mobile/lib/firebase_options.dart
 # Coverage
 coverage/
 *.lcov
+config.bat

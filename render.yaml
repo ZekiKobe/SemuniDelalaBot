@@ -1,0 +1,119 @@
+# Render Blueprint — Delala backend
+# https://render.com/docs/blueprint-spec
+#
+# Deploy:
+#   1. Push this repo to GitHub
+#   2. Render Dashboard → New → Blueprint → connect repo
+#   3. Fill secret env vars when prompted (MONGODB_URI, TELEGRAM_BOT_TOKEN, etc.)
+#   4. Add your Atlas cluster IP allowlist for Render outbound IPs
+#
+# Note: API and bot each get their own disk. Uploaded images written by the bot
+# are not visible to the API until you add shared object storage (e.g. S3).
+# For full Telegram image support today, run the bot on Docker/VPS; keep API on Render.
+
+envVarGroups:
+  - name: delala-shared
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_VERSION
+        value: v1
+      - key: ENABLE_TELEGRAM_POLLING
+        value: "false"
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: LOG_DIR
+        value: /app/logs
+      - key: LOG_LEVEL
+        value: info
+      - key: MONGODB_DB_NAME
+        value: delala
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHANNEL_ID
+        sync: false
+      - key: TELEGRAM_CHANNEL_URL
+        sync: false
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: LISTING_FEE_ETB
+        value: "20"
+      - key: LISTING_DURATION_DAYS
+        value: "90"
+      - key: TELEBIRR_ACCOUNT_NUMBER
+        sync: false
+      - key: TELEBIRR_ACCOUNT_NAME
+        sync: false
+      - key: CBE_ACCOUNT_NUMBER
+        sync: false
+      - key: CBE_ACCOUNT_NAME
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX
+        value: "100"
+      - key: AUTH_RATE_LIMIT_MAX
+        value: "5"
+
+services:
+  - type: web
+    name: delala-api
+    runtime: docker
+    rootDir: backend
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    disk:
+      name: delala-uploads
+      mountPath: /app/uploads
+      sizeGB: 5
+    envVars:
+      - fromGroup: delala-shared
+      - key: API_URL
+        fromService:
+          type: web
+          name: delala-api
+          property: url
+
+  - type: worker
+    name: delala-bot
+    runtime: docker
+    rootDir: backend
+    plan: starter
+    region: frankfurt
+    dockerCommand: node start-bot.js
+    autoDeploy: true
+    disk:
+      name: delala-bot-uploads
+      mountPath: /app/uploads
+      sizeGB: 5
+    envVars:
+      - fromGroup: delala-shared
+      - key: API_URL
+        fromService:
+          type: web
+          name: delala-api
+          property: url
