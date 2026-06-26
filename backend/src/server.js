@@ -16,7 +16,7 @@ const startServer = async () => {
   await fcmService.init();
   startJobs();
 
-  const server = app.listen(config.port, () => {
+  const server = app.listen(config.port, '0.0.0.0', () => {
     logger.info(`Delala API running on port ${config.port}`, {
       env: config.env,
       apiVersion: config.apiVersion,
