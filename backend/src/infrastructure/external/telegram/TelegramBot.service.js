@@ -739,10 +739,23 @@ class TelegramBotService {
 
   async showReturningWelcome(chatId, lang) {
     const msgs = this.getMsgs(lang);
-    await this.bot.sendMessage(chatId, msgs.returningWelcome, {
-      parse_mode: 'Markdown',
-      reply_markup: this.getMainReplyKeyboard(lang),
-    });
+    const replyMarkup = this.getMainReplyKeyboard(lang);
+    const path = require('path');
+    const logoPath = path.join(__dirname, '../../../assets/logo1.png');
+
+    try {
+      await this.bot.sendPhoto(chatId, logoPath, {
+        caption: msgs.returningWelcome,
+        parse_mode: 'Markdown',
+        reply_markup: replyMarkup,
+      });
+    } catch (error) {
+      logger.warn('Failed to send logo, falling back to text', { error: error.message });
+      await this.bot.sendMessage(chatId, msgs.returningWelcome, {
+        parse_mode: 'Markdown',
+        reply_markup: replyMarkup,
+      });
+    }
   }
 
   async showMainMenu(chatId, lang) {
