@@ -3,29 +3,31 @@ import '../../core/network/dio_client.dart';
 import '../../data/datasources/remote/favorite_remote_datasource.dart';
 import '../../data/models/property_model.dart';
 import '../../data/models/unified_listing_model.dart';
+import 'auth_provider.dart';
 
 final favoriteRemoteProvider = Provider<FavoriteRemoteDataSource>((ref) {
   return FavoriteRemoteDataSource(ref.watch(dioProvider));
 });
 
 final favoritesProvider = FutureProvider<List<PropertyModel>>((ref) async {
+  if (!ref.watch(authProvider).isAuthenticated) return [];
   return ref.watch(favoriteRemoteProvider).getAll();
 });
 
 final unifiedFavoritesProvider = FutureProvider<List<UnifiedListingModel>>((ref) async {
+  if (!ref.watch(authProvider).isAuthenticated) return [];
   return ref.watch(favoriteRemoteProvider).getAllUnified();
 });
 
 final isFavoritedProvider = FutureProvider.family<bool, String>((ref, listingId) async {
+  if (!ref.watch(authProvider).isAuthenticated) return false;
   return ref.watch(favoriteRemoteProvider).check(listingId);
 });
 
 class FavoritesNotifier extends StateNotifier<Set<String>> {
   final FavoriteRemoteDataSource _datasource;
 
-  FavoritesNotifier(this._datasource) : super({}) {
-    _loadFavorites();
-  }
+  FavoritesNotifier(this._datasource) : super({});
 
   Future<void> _loadFavorites() async {
     try {
@@ -34,6 +36,10 @@ class FavoritesNotifier extends StateNotifier<Set<String>> {
     } catch (e) {
       // Silently fail if not authenticated or error
     }
+  }
+
+  void clear() {
+    state = {};
   }
 
   Future<void> toggle(String listingId) async {
@@ -74,5 +80,17 @@ class FavoritesNotifier extends StateNotifier<Set<String>> {
 }
 
 final favoritesNotifierProvider = StateNotifierProvider<FavoritesNotifier, Set<String>>((ref) {
-  return FavoritesNotifier(ref.watch(favoriteRemoteProvider));
+  final notifier = FavoritesNotifier(ref.watch(favoriteRemoteProvider));
+
+  ref.listen<AuthState>(authProvider, (previous, next) {
+    if (next.isAuthenticated) {
+      if (previous?.isAuthenticated != true) {
+        notifier.refresh();
+      }
+    } else {
+      notifier.clear();
+    }
+  }, fireImmediately: true);
+
+  return notifier;
 });
