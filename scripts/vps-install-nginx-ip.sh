@@ -18,8 +18,12 @@ fi
 cp "$APP_DIR/backend/nginx.conf.ip-only" "/etc/nginx/sites-available/$SITE_NAME"
 ln -sf "/etc/nginx/sites-available/$SITE_NAME" "/etc/nginx/sites-enabled/$SITE_NAME"
 rm -f /etc/nginx/sites-enabled/default
+rm -f /etc/nginx/conf.d/default.conf
 
 nginx -t
 systemctl reload nginx
 
-echo "Nginx ready. Test: curl http://$(curl -4 -s ifconfig.me 2>/dev/null || echo YOUR_VPS_IP)/api/v1/health"
+echo ""
+echo "Nginx ready. Test on the server:"
+echo "  curl http://127.0.0.1/api/v1/health"
+echo "  curl http://127.0.0.1/health"

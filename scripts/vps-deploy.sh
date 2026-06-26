@@ -61,23 +61,38 @@ pm2 startOrReload ecosystem.config.js --env production
 pm2 save
 
 echo "==> Health check (API + bot)..."
+echo "    (API may take 20-40s to listen while MongoDB connects on first start)"
+
 api_ok=false
 bot_ok=false
+health_port="${PORT:-5000}"
+if [[ -f .env ]]; then
+  env_port="$(grep -E '^PORT=' .env | tail -1 | cut -d= -f2- | tr -d '[:space:]' || true)"
+  if [[ -n "${env_port:-}" ]]; then
+    health_port="$env_port"
+  fi
+fi
 
-for i in {1..30}; do
-  if curl -fsS "http://127.0.0.1:${PORT:-5000}/api/v1/health" >/dev/null; then
+sleep 5
+
+for i in $(seq 1 45); do
+  if curl -fsS "http://127.0.0.1:${health_port}/api/v1/health" >/dev/null 2>&1; then
     api_ok=true
+    echo "    API ready (attempt $i)."
     break
+  fi
+  if (( i % 5 == 0 )); then
+    echo "    Still waiting for API... (${i}/45)"
   fi
   sleep 2
 done
 
-for i in {1..15}; do
+for i in $(seq 1 10); do
   if pm2 describe delala-bot 2>/dev/null | grep -q "status.*online"; then
     bot_ok=true
     break
   fi
-  sleep 2
+  sleep 1
 done
 
 if [[ "$api_ok" == true && "$bot_ok" == true ]]; then

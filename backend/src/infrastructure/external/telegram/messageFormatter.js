@@ -19,7 +19,7 @@ const normalizeTag = (text) => {
 const getBotUsername = () => (
   config.telegram.botUsername
     ? `@${config.telegram.botUsername.replace(/^@/, '')}`
-    : '@semunidelalabot'
+    : '@semuni_delalabot'
 );
 
 const CHANNEL_TEXT = {

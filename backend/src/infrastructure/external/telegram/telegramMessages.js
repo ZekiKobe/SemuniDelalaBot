@@ -73,8 +73,8 @@ Please select your preferred language to continue:`,
     supportTicketHeader: "New Telegram support request",
     supportMessage:
       // UNCOMMENT WEBSITE WHEN DEPLOYED:
-      // "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
-      "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @zac_06\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
+      // "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @azity_1\n🌐 Website: semunidelala.com\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
+      "☎️ SemuniDelala Support\n\nNeed help? Contact us:\n📱 Telegram: @azity_1\n\nYou can also send your question here and our team will follow up. If it is about a listing, include the title, location, and phone number you used.",
     supportReceived: "✅ Your message was sent to support. We will follow up soon.",
     // UNCOMMENT WHEN APP IS DEPLOYED:
     // supportUnavailable: "Support is not connected yet. Please try again later or use the mobile app.",
@@ -280,8 +280,8 @@ You can also use /cancel anytime to stop the current step.`,
     supportTicketHeader: "አዲስ የቴሌግራም ድጋፍ ጥያቄ",
     supportMessage:
       // UNCOMMENT WEBSITE WHEN DEPLOYED:
-      // "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
-      "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @zac_06\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
+      // "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @azity_1\n🌐 Website: semunidelala.com\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
+      "☎️ የስሙኒ ደላላ ድጋፍ\n\nድጋፍ ይፈልጋሉ? ያግኙን:\n📱 Telegram: @azity_1\n\nጥያቄዎንም እዚህ መላክ ይችላሉ። ስለ ማስታወቂያ ከሆነ ርዕስ፣ አካባቢ እና የተጠቀሙበትን ስልክ ቁጥር ይጻፉ።",
     supportReceived: "✅ መልዕክትዎ ወደ ድጋፍ ቡድን ተልኳል። በቅርቡ እንከታተላለን።",
     // UNCOMMENT WHEN APP IS DEPLOYED:
     // supportUnavailable: "ድጋፍ እስካሁን አልተገናኘም። እባክዎ በኋላ ይሞክሩ ወይም የሞባይል መተግበሪያውን ይጠቀሙ።",
@@ -486,8 +486,8 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     supportTicketHeader: "Gaaffii deeggarsa Telegram haaraa",
     supportMessage:
       // UNCOMMENT WEBSITE WHEN DEPLOYED:
-      // "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @zac_06\n🌐 Website: semunidelala.com\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
-      "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @zac_06\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
+      // "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @azity_1\n🌐 Website: semunidelala.com\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
+      "☎️ Deeggarsa SemuniDelala\n\nDeeggarsa barbaadda? Nu quunnamaa:\n📱 Telegram: @azity_1\n\nGaaffii kees asitti erguu dandeessa. Yoo waa'ee maxxansa ta'e, mata duree, bakka, fi lakkoofsa bilbilaa itti fayyadamte galchi.",
     supportReceived: "✅ Ergaan kee gara deeggarsaatti ergameera. Yeroo dhiyootti si hordofna.",
     // UNCOMMENT WHEN APP IS DEPLOYED:
     // supportUnavailable: "Deeggarsi ammatti walitti hin hidhamne. Maaloo boodarra yaali ykn app mobile fayyadami.",
