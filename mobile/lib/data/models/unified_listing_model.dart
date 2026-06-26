@@ -99,6 +99,13 @@ class UnifiedListingModel {
               .toList() ??
           [];
 
+      final rawPrimaryImage = json['primaryImage']?.toString();
+      final resolvedPrimaryImage = rawPrimaryImage != null && rawPrimaryImage.isNotEmpty
+          ? UnifiedListingImage.resolveUrl(rawPrimaryImage)
+          : (imagesList.isNotEmpty
+              ? (imagesList.first.thumbnailUrl ?? imagesList.first.url)
+              : null);
+
       return UnifiedListingModel(
         id: json['id']?.toString() ?? '',
         title: json['title']?.toString() ?? '',
@@ -113,7 +120,7 @@ class UnifiedListingModel {
         brand: json['brand']?.toString(),
         model: json['model']?.toString(),
         images: imagesList,
-        primaryImage: json['primaryImage']?.toString(),
+        primaryImage: resolvedPrimaryImage,
         location: UnifiedListingLocation.fromJson(
           (json['location'] as Map<String, dynamic>?) ?? {},
         ),
@@ -199,13 +206,13 @@ class UnifiedListingImage {
     
     return UnifiedListingImage(
       id: json['_id']?.toString() ?? '',
-      url: _resolveUrl(urlStr),
-      thumbnailUrl: thumbnailStr != null ? _resolveUrl(thumbnailStr) : null,
+      url: resolveUrl(urlStr),
+      thumbnailUrl: thumbnailStr != null ? resolveUrl(thumbnailStr) : null,
       order: (json['order'] as int?) ?? 0,
     );
   }
 
-  static String _resolveUrl(String path) {
+  static String resolveUrl(String path) {
     if (path.isEmpty) return '';
     if (path.startsWith('http')) return path;
     final base = AppConfig.apiBaseUrl.replaceAll('/api/v1', '');

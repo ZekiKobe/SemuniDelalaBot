@@ -716,7 +716,9 @@ module.exports = {
         message += `\n_Showing ${result.data.length} of ${result.total} results._\n\n`;
       }
 
-      message += msgs.searchAppPrompt;
+      if (msgs.searchAppPrompt) {
+        message += msgs.searchAppPrompt;
+      }
 
       const appButton = this.getAppInlineButton(msgs.downloadAppButton);
       const keyboard = {
