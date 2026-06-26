@@ -14,7 +14,7 @@ Please select your preferred language to continue:`,
     continueButton: "Continue",
     channelJoinRequired:
       "⚠️ *Channel membership required*\n\nPlease join our Telegram channel first, then tap *Continue* again.",
-    pleaseUseButtons: "Please only use the buttons provided below.",
+    pleaseUseButtons: "Please use the buttons below or tap 'Menu' next to the message box.",
     benefits: `✨ *Why Choose SemuniDelala?*
 
 🎯 **For Sellers:**
@@ -33,10 +33,11 @@ Please select your preferred language to continue:`,
     userTypeSelection: "What would you like to do today?",
     buyer: "🛍️ I Want to Buy / Rent",
     seller: "💰 I Want to Sell / Rent Out",
-    postRequirement: "📝 Post Property/Product",
+    postRequirement: "📝 Post My Requirement",
     browseProperties: "🏠 Browse Listings",
+    mainMenuButton: "🏠 Main Menu",
     buyerInlinePrompt: "🔍 *Find Property or Products*\n\nChoose how you'd like to proceed:",
-    mainMenuPrompt: "Quick shortcuts are available below.",
+    mainMenuPrompt: "👇 Use the buttons below — buy/rent posts your requirement, browse/search finds listings.",
     searchByLocation: "📍 Search by Area",
     myListingsButton: "📋 My Listings",
     supportButton: "☎️ Support",
@@ -44,10 +45,10 @@ Please select your preferred language to continue:`,
     // UNCOMMENT WHEN APP IS DEPLOYED:
     // downloadApp: "📱 Download our mobile app for the full experience.",
     // downloadAppButton: "📱 Download App",
-    returningWelcome: "👋 Welcome back to SemuniDelala.\n\nUse the menu below to browse listings, search by location, post a property or product, submit your requirement, or contact support.",
+    returningWelcome: "👋 Welcome back to SemuniDelala.\n\nUse the buttons below or tap 'Menu'next to the message box for quick actions.",
     languageChanged: "✅ Language changed.",
-    selectLanguageFirst: "Please select a language first using /start",
-    mainMenuTitle: "🏠 *Main Menu*\n\nChoose an action from the keyboard below, or tap a quick option:",
+    selectLanguageFirst: "Please choose your language using the buttons below.",
+    mainMenuTitle: "🏠 *Main Menu*\n\nChoose an action from the buttons below:",
     postSellerMenuPrompt: "What would you like to post?",
     browseEmpty: "No approved listings are available at the moment. Please check back later.",
     browseEnd: "End of page {current}/{total}. Use the buttons below to navigate.",
@@ -95,26 +96,19 @@ Please select your preferred language to continue:`,
       // "✅ Your requirement has been submitted successfully!\n\nAfter admin approves your payment, your requirement will be posted to our channel where sellers can see it and contact you if they have a matching item or property.\n\nYou can also browse available listings using the mobile app.",
       "✅ Your requirement has been submitted successfully!\n\nAfter admin approves your payment, your requirement will be posted to our channel where sellers can see it and contact you if they have a matching item or property.",
     start:
-      "🏠 Welcome to Delala Property Bot!\n\n/start - Start posting a new property\n/help - Get help\n/mylistings - View your posted properties",
-    help: `📚 Help
+      "👋 Welcome to SemuniDelala!\n\nTap 🏠 *Main Menu* below or use the 'Menu'menu next to the message box.",
+    help: `📚 *Help*
 
-/start - Start posting a property
-/mylistings - View your posted properties
-/cancel - Cancel current posting process
+Use the buttons below or tap 'Menu'next to the message box:
 
-📝 Posting Process:
-1. Property title
-2. Description
-3. Listing type (Rent/Buy)
-4. Property type
-5. Price (ETB)
-6. Location (City, Sub-city)
-7. Contact phone
-8. Upload images
-9. Upload payment proof
-10. Submit for approval
+🏠 Main Menu — home screen
+🛍️ Buy / Rent — browse listings
+💰 Sell / Rent Out — post a property or product
+📍 Search by Area — find listings by location
+📋 My Listings — your posted items
+☎️ Support — contact our team
 
-💰 Payment: 20 ETB listing fee`,
+You can also use /cancel anytime to stop the current step.`,
     step1_title:
       '📝 Step 1/10: Property Title\n\nPlease enter your property title.\nExample: "Modern 2-bedroom apartment in Bole"\n\nType /cancel to cancel.',
     step2_description:
@@ -227,7 +221,7 @@ Please select your preferred language to continue:`,
     continueButton: "ቀጥል",
     channelJoinRequired:
       "⚠️ *ቻናሉን መቀላቀል ያስፈልጋል*\n\nእባክዎ መጀመሪያ የቴሌግራም ቻናላችንን ይቀላቀሉ፣ ከዚያ *ቀጥል* የሚለውን ድጋሚ ይጫኑ።",
-    pleaseUseButtons: "እባክዎ ከታች የተሰጡትን buttons ብቻ ይጠቀሙ።",
+    pleaseUseButtons: "እባክዎ ከታች ያሉትን ቁልፎች ወይም 'Menu'menu ይጠቀሙ።",
     benefits: `✨ *ለምን ስሙኒ ደላላን ይመርጣሉ?*
 
 🎯 **ለሻጮች:**
@@ -248,8 +242,9 @@ Please select your preferred language to continue:`,
     seller: "💰 ለመሸጥ / ለማከራየት እፈልጋለሁ",
     postRequirement: "📝 የቤት/የዕቃ ፍላጎትዎን ይለጥፉ",
     browseProperties: "🏠 ቤቶችን/ዕቃዎችን ይመልከቱ",
+    mainMenuButton: "🏠 ዋና Menu",
     buyerInlinePrompt: "🔍 *ቤት ወይም ዕቃ ያግኙ*\n\nእንዴት መቀጠል እንደሚፈልጉ ይምረጡ፦",
-    mainMenuPrompt: "ፈጣን አቋራጮች ከታች ይገኛሉ።",
+    mainMenuPrompt: "👇 ከታች ያሉትን ቁልፎች ይጠቀሙ — ለመግዛት/መከራየት ፍላጎትዎን ይለጥፉ፣ ለማሰስ/መፈለግ ዝርዝሮችን ይመልከቱ።",
     searchByLocation: "📍 በአካባቢ ይፈልጉ",
     myListingsButton: "📋 የእኔ ልጥፎች",
     supportButton: "☎️ ድጋፍ",
@@ -257,10 +252,10 @@ Please select your preferred language to continue:`,
     // UNCOMMENT WHEN APP IS DEPLOYED:
     // downloadApp: "📱 ሙሉ አገልግሎት ለማግኘት የሞባይል መተግበሪያችንን ያውርዱ።",
     // downloadAppButton: "📱 መተግበሪያ ያውርዱ",
-    returningWelcome: "👋 እንኳን ወደ ስሙኒ ደላላ በደህና ተመለሱ।\n\nከታች ባለው menu ቤትና ዕቃ ዝርዝሮችን ይመልከቱ፣ በአካባቢ ይፈልጉ፣ ንብረት ወይም ዕቃ ይለጥፉ፣ ፍላጎትዎን ያስገቡ ወይም ድጋፍ ይጠይቁ።",
+    returningWelcome: "👋 እንኳን ወደ ስሙኒ ደላላ በደህና ተመለሱ።\n\nከታች ያሉትን ቁልፎች ይጠቀሙ ወይም 'Menu'menu ን ይጫኑ።",
     languageChanged: "✅ ቋንቋ ተቀይሯል።",
-    selectLanguageFirst: "እባክዎ በ /start ቋንቋዎን ይምረጡ",
-    mainMenuTitle: "🏠 *ዋና Menu*\n\nከታች ካለው ቁልፍ ይምረጡ፣ ወይም ፈጣን አማራጭ ይጫኑ:",
+    selectLanguageFirst: "እባክዎ ከታች ያለውን ቋንቋ ቁልፍ ይምረጡ።",
+    mainMenuTitle: "🏠 *ዋና Menu*\n\nከታች ያለውን ቁልፍ ይምረጡ፦",
     postSellerMenuPrompt: "ምን ልትለጥፉ ይፈልጋሉ?",
     browseEmpty: "በዚህ ጊዜ የተፈቀዱ ልጥፎች የሉም። እባክዎ በኋላ ይመለሱ።",
     browseEnd: "ገጽ {current}/{total} መጨረሻ። ለመንቀሳቀስ ከታች ያሉትን ቁልፎች ይጠቀሙ።",
@@ -432,7 +427,7 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     continueButton: "Itti fufi",
     channelJoinRequired:
       "⚠️ *Chaanaalii join gochuun barbaachisaa dha*\n\nMaaloo dura chaanaalii Telegram keenya join godhaa, sana booda *Itti fufi* irra deebi'aa cuqaasaa.",
-    pleaseUseButtons: "Maaloo qabdoota armaan gaditti kennamanii qofa fayyadamaa.",
+    pleaseUseButtons: "Maaloo button armaan gadii ykn 'Menu'menu fayyadami.",
     benefits: `✨ *Dalaala maaliif fayyadama?*
 
 🎯 **Qabachuu fi Dhiyeessuu:**
@@ -453,8 +448,9 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     seller: "💰 Dhiyeessuuf / Kiraa Dhiyeessuuf",
     postRequirement: "📝 Fedhii qabeenyaa/meeshaa maxxansi",
     browseProperties: "🏠 Maxxansota ilaali",
+    mainMenuButton: "🏠 Menu Guddaa",
     buyerInlinePrompt: "🔍 *Qabeenya ykn meeshaa barbaadi*\n\nAkka itti fuftu filadhu:",
-    mainMenuPrompt: "Filannoowwan saffisaa armaan gaditti argamu.",
+    mainMenuPrompt: "👇 Button armaan gadii fayyadami — bitachuu/kiraaf fedhii kee galchi, maxxansota ilaaluuf barbaadi.",
     searchByLocation: "📍 Bakkaan barbaadi",
     myListingsButton: "📋 Maxxansota koo",
     supportButton: "☎️ Deeggarsa",
@@ -462,10 +458,10 @@ Itti fufuuf afaan barbaaddan filadhaa:`,
     // UNCOMMENT WHEN APP IS DEPLOYED:
     // downloadApp: "📱 Muuxannoo guutuu argachuuf app mobile keenya buufadhu.",
     // downloadAppButton: "📱 App Buufadhu",
-    returningWelcome: "👋 Baga nagaan gara SemuniDelala deebitan.\n\nMenu armaan gadii fayyadamuun maxxansota ilaalaa, bakkaadhaan barbaadaa, qabeenya yookaan meeshaa maxxansaa, fedhii keessan galchaa, yookaan deeggarsa gaafadhaa.",
+    returningWelcome: "👋 Baga nagaan gara SemuniDelala deebitan.\n\nButton armaan gadii ykn 'Menu'menu fayyadami.",
     languageChanged: "✅ Afaan jijjiirameera.",
-    selectLanguageFirst: "Maaloo dura /start fayyadamuun afaan filadhu",
-    mainMenuTitle: "🏠 *Menu Guddaa*\n\nKeyboard jala irraa filadhu ykn filannoo saffisaa cuqaasi:",
+    selectLanguageFirst: "Maaloo afaan button armaan gadii irraa filadhu.",
+    mainMenuTitle: "🏠 *Menu Guddaa*\n\nButton armaan gadii irraa filadhu:",
     postSellerMenuPrompt: "Maal maxxansuu barbaadda?",
     browseEmpty: "Yeroo ammaa maxxansni mirkanaa'e hin jiru. Booda deebi'i.",
     browseEnd: "Fuula {current}/{total} xumura. Socho'uuf button armaan gadii fayyadami.",

@@ -1,11 +1,16 @@
+const path = require('path');
+
+const backendDir = __dirname;
+
 module.exports = {
   apps: [
     {
       name: 'delala-api',
+      cwd: backendDir,
       script: 'src/server.js',
-      instances: 'max',
-      exec_mode: 'cluster',
-      max_memory_restart: '512M',
+      instances: 1,
+      exec_mode: 'fork',
+      max_memory_restart: '400M',
       env: {
         NODE_ENV: 'development',
         PORT: 5000,
@@ -16,8 +21,8 @@ module.exports = {
         PORT: 5000,
         ENABLE_TELEGRAM_POLLING: 'false',
       },
-      error_file: './logs/pm2-error.log',
-      out_file: './logs/pm2-out.log',
+      error_file: './logs/pm2-api-error.log',
+      out_file: './logs/pm2-api-out.log',
       merge_logs: true,
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       autorestart: true,
@@ -27,7 +32,8 @@ module.exports = {
     },
     {
       name: 'delala-bot',
-      script: 'src/bot-worker.js',
+      cwd: backendDir,
+      script: 'start-bot.js',
       instances: 1,
       exec_mode: 'fork',
       max_memory_restart: '256M',

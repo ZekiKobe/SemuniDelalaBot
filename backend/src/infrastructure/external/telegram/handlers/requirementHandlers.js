@@ -223,9 +223,7 @@ ${msgs.step10_summary}
 📍 *Location:* ${req.location}
 📞 *Contact:* ${req.contactPhone}
 💳 *Payment Proof:* ${paymentStatus}${paymentInstructions}
-${data.paymentProof ? msgs.afterPaymentProof : msgs.afterPayment}
-
-${msgs.downloadApp}
+${data.paymentProof ? msgs.afterPaymentProof : msgs.afterPayment}${msgs.downloadApp ? `\n\n${msgs.downloadApp}` : ''}
     `;
 
     const appButton = this.getAppInlineButton(msgs.downloadAppButton);

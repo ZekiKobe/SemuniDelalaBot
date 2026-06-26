@@ -31,6 +31,7 @@ const config = {
     adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
     enablePolling: process.env.ENABLE_TELEGRAM_POLLING === 'true',
+    skipChannelCheck: process.env.TELEGRAM_SKIP_CHANNEL_CHECK === 'true',
   },
 
   firebase: {

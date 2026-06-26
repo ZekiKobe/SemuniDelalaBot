@@ -781,9 +781,7 @@ ${msgs.step10_summary}
 📞 *Contact:* ${propertyData.contactPhone}
 📷 *Images:* ${propertyData.images.length} uploaded
 💳 *Payment Proof:* ${paymentStatus}${paymentInstructions}
-${propertyData.paymentProof ? msgs.afterPaymentProof : msgs.afterPayment}
-
-${msgs.downloadApp}
+${propertyData.paymentProof ? msgs.afterPaymentProof : msgs.afterPayment}${msgs.downloadApp ? `\n\n${msgs.downloadApp}` : ''}
     `;
 
     const appButton = this.getAppInlineButton(msgs.downloadAppButton);

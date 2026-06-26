@@ -1,0 +1,47 @@
+# VPS without a domain: HTTP on port 80 only (Option B).
+# Install: sudo bash scripts/vps-install-nginx-ip.sh
+
+upstream delala_api {
+    least_conn;
+    server 127.0.0.1:5000;
+    keepalive 64;
+}
+
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    client_max_body_size 10M;
+
+    location /uploads/ {
+        alias /var/www/delala/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+
+        proxy_pass http://delala_api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 90s;
+    }
+
+    location /health {
+        proxy_pass http://delala_api/api/v1/health;
+    }
+}

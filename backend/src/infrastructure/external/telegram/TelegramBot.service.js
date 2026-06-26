@@ -12,6 +12,7 @@ const productPersistenceHandlers = require('./handlers/productPersistenceHandler
 const adminHandlers = require('./handlers/adminHandlers');
 const publishingHandlers = require('./handlers/publishingHandlers');
 const channelPublisher = require('./channelPublisher');
+const { registerBotCommandMenu } = require('./telegramBotMenu');
 
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_CHANNEL_URL = 'https://t.me/semunidelala';
@@ -35,6 +36,7 @@ class TelegramBotService {
     this.onboardedChats = new Set();
     this.processingCallbacks = new Set();
     this.messages = messages;
+    this.channelChatId = null;
   }
 
   init() {
@@ -50,8 +52,44 @@ class TelegramBotService {
       this.initialized = true;
       logger.info('Telegram bot initialized with polling');
       this.setupCommandHandlers();
+      registerBotCommandMenu(this.bot).catch((error) => {
+        logger.warn('Failed to register Telegram command menu', { error: error.message });
+      });
+      this.validateChannelMembershipSetup().catch((error) => {
+        logger.error('Telegram channel setup validation failed', { error: error.message });
+      });
     } catch (error) {
       logger.error('Failed to initialize Telegram bot', { error: error.message });
+    }
+  }
+
+  async validateChannelMembershipSetup() {
+    if (!config.telegram.channelId || !this.bot) {
+      return;
+    }
+
+    const chat = await this.bot.getChat(config.telegram.channelId);
+    this.channelChatId = chat.id;
+
+    const botInfo = await this.bot.getMe();
+    const botMember = await this.bot.getChatMember(chat.id, botInfo.id);
+
+    if (!['administrator', 'creator'].includes(botMember?.status)) {
+      logger.error(
+        'Telegram bot is not a channel administrator — membership checks will fail. '
+        + 'Add the bot as an admin of the channel in Telegram.',
+        {
+          channelId: config.telegram.channelId,
+          resolvedChannelId: chat.id,
+          botUsername: botInfo.username,
+          botStatus: botMember?.status,
+        },
+      );
+    } else {
+      logger.info('Telegram channel membership checks enabled', {
+        channelId: config.telegram.channelId,
+        resolvedChannelId: chat.id,
+      });
     }
   }
 
@@ -84,21 +122,69 @@ class TelegramBotService {
   }
 
   async hasJoinedRequiredChannel(chatId) {
-    if (!config.telegram.channelId) {
-      return true;
+    if (!config.telegram.channelId || config.telegram.skipChannelCheck) {
+      return { joined: true };
     }
 
+    const channelId = this.channelChatId || config.telegram.channelId;
+
     try {
-      const member = await this.bot.getChatMember(config.telegram.channelId, chatId);
-      return ['creator', 'administrator', 'member'].includes(member?.status);
+      const member = await this.bot.getChatMember(channelId, chatId);
+      const joined = ['creator', 'administrator', 'member', 'restricted'].includes(member?.status);
+      return {
+        joined,
+        reason: joined ? undefined : 'not_member',
+        status: member?.status,
+      };
     } catch (error) {
+      const message = error.message || '';
+      const checkUnavailable = /member list is inaccessible|chat admin required|bot is not a member/i.test(message);
+
+      if (checkUnavailable) {
+        logger.error(
+          'Cannot verify Telegram channel membership — add the bot as a channel administrator',
+          {
+            chatId,
+            channelId,
+            error: message,
+          },
+        );
+        return { joined: false, reason: 'check_unavailable' };
+      }
+
+      if (/user not found|USER_NOT_PARTICIPANT|participant/i.test(message)) {
+        return { joined: false, reason: 'not_member' };
+      }
+
       logger.warn('Failed to verify Telegram channel membership', {
         chatId,
-        channelId: config.telegram.channelId,
-        error: error.message,
+        channelId,
+        error: message,
       });
-      return false;
+      return { joined: false, reason: 'not_member' };
     }
+  }
+
+  async proceedAfterChannelCheck(chatId, lang) {
+    const membership = await this.hasJoinedRequiredChannel(chatId);
+
+    if (membership.joined) {
+      this.markUserOnboarded(chatId);
+      await this.showPostLanguageOnboarding(chatId, lang);
+      return;
+    }
+
+    if (membership.reason === 'check_unavailable') {
+      // Bot cannot read the member list (not a channel admin). Don't trap users who already joined.
+      logger.warn('Allowing onboarding while channel membership check is misconfigured', { chatId });
+      this.markUserOnboarded(chatId);
+      await this.showPostLanguageOnboarding(chatId, lang);
+      return;
+    }
+
+    const msgs = this.getMsgs(lang);
+    await this.bot.sendMessage(chatId, msgs.channelJoinRequired, { parse_mode: 'Markdown' });
+    await this.showChannelJoinPrompt(chatId, lang);
   }
 
   async persistUserLanguage(chatId, lang, from) {
@@ -156,28 +242,31 @@ class TelegramBotService {
 
   setupCommandHandlers() {
     this.bot.onText(/\/start/, async (msg) => {
-      const chatId = msg.chat.id;
-      const lang = await this.ensureUserContext(chatId, msg.from);
-
-      if (this.isUserOnboarded(chatId)) {
-        await this.showReturningWelcome(chatId, lang);
-        return;
-      }
-
-      await this.showLanguageSelection(chatId, lang, true);
+      await this.handleStartCommand(msg);
     });
 
     this.bot.onText(/\/menu/, async (msg) => {
+      await this.handleMenuCommand(msg);
+    });
+
+    this.bot.onText(/\/browse/, async (msg) => {
       const chatId = msg.chat.id;
       const lang = await this.ensureUserContext(chatId, msg.from);
+      if (!(await this.requireOnboarded(chatId, lang))) return;
+      this.tempPropertyData.delete(chatId);
+      await this.showBrowseProperties(chatId, lang, 0);
+    });
 
-      if (!this.userLanguages.has(chatId)) {
-        await this.bot.sendMessage(chatId, this.getMsgs(lang).selectLanguageFirst);
-        await this.showLanguageSelection(chatId, lang, true);
-        return;
-      }
-
-      await this.showMainMenu(chatId, lang);
+    this.bot.onText(/\/search/, async (msg) => {
+      const chatId = msg.chat.id;
+      const lang = await this.ensureUserContext(chatId, msg.from);
+      if (!(await this.requireOnboarded(chatId, lang))) return;
+      const msgs = this.getMsgs(lang);
+      this.userStates.set(chatId, { step: 'search_location', lang });
+      await this.bot.sendMessage(chatId, msgs.searchLocationPrompt, {
+        parse_mode: 'Markdown',
+        reply_markup: this.getMainReplyKeyboard(lang),
+      });
     });
 
     this.bot.onText(/\/help/, async (msg) => {
@@ -185,9 +274,13 @@ class TelegramBotService {
       const lang = await this.ensureUserContext(chatId, msg.from);
       const msgs = this.getMsgs(lang);
       const appButton = this.getAppInlineButton(msgs.downloadAppButton);
+      const replyMarkup = appButton
+        ? { inline_keyboard: [[appButton]] }
+        : (this.isUserOnboarded(chatId) ? this.getMainReplyKeyboard(lang) : undefined);
 
       await this.bot.sendMessage(chatId, msgs.help, {
-        ...(appButton && { reply_markup: { inline_keyboard: [[appButton]] } }),
+        parse_mode: 'Markdown',
+        ...(replyMarkup && { reply_markup: replyMarkup }),
       });
     });
 
@@ -196,7 +289,7 @@ class TelegramBotService {
       const lang = await this.ensureUserContext(chatId, msg.from);
 
       if (!this.userLanguages.has(chatId)) {
-        await this.bot.sendMessage(chatId, this.getMsgs(lang).selectLanguageFirst);
+        await this.showLanguageSelection(chatId, lang, true);
         return;
       }
 
@@ -250,27 +343,22 @@ class TelegramBotService {
             return;
           }
 
-          const joinedChannel = await this.hasJoinedRequiredChannel(chatId);
-          if (joinedChannel) {
+          const membership = await this.hasJoinedRequiredChannel(chatId);
+          if (membership.joined) {
             this.markUserOnboarded(chatId);
             await this.showPostLanguageOnboarding(chatId, selectedLang);
+            return;
+          }
+
+          if (membership.reason === 'check_unavailable') {
+            await this.proceedAfterChannelCheck(chatId, selectedLang);
             return;
           }
 
           await this.showChannelJoinPrompt(chatId, selectedLang);
         } else if (data === 'continue_after_channel') {
           await this.bot.answerCallbackQuery(query.id);
-          const joinedChannel = await this.hasJoinedRequiredChannel(chatId);
-          if (!joinedChannel) {
-            await this.bot.sendMessage(chatId, this.getMsgs(lang).channelJoinRequired, {
-              parse_mode: 'Markdown',
-            });
-            await this.showChannelJoinPrompt(chatId, lang);
-            return;
-          }
-
-          this.markUserOnboarded(chatId);
-          await this.showPostLanguageOnboarding(chatId, lang);
+          await this.proceedAfterChannelCheck(chatId, lang);
         } else if (data === 'user_buyer' || data === 'user_seller') {
           await this.bot.answerCallbackQuery(query.id);
           const userType = data === 'user_buyer' ? 'buyer' : 'seller';
@@ -280,7 +368,8 @@ class TelegramBotService {
           if (userType === 'seller') {
             await this.showSellerListingMenu(chatId, lang);
           } else {
-            await this.showBuyerQuickActions(chatId, lang);
+            this.tempPropertyData.delete(chatId);
+            await this.startRequirementSubmission(chatId, lang);
           }
         } else if (data === 'post_property') {
           await this.bot.answerCallbackQuery(query.id);
@@ -476,11 +565,9 @@ class TelegramBotService {
           return;
         }
 
-        // If user is not onboarded and no active state, tell them to use buttons
+        // Not onboarded — show welcome with buttons instead of asking for /start
         if (!this.isUserOnboarded(chatId) && !state) {
-          await this.bot.sendMessage(chatId, this.getMsgs(lang).pleaseUseButtons, {
-            reply_markup: { remove_keyboard: true },
-          });
+          await this.showLanguageSelection(chatId, lang, true);
           return;
         }
 
@@ -544,6 +631,10 @@ class TelegramBotService {
     return {
       keyboard: [
         [
+          { text: msgs.mainMenuButton },
+          { text: msgs.buyer },
+        ],
+        [
           { text: msgs.browseProperties },
           { text: msgs.searchByLocation },
         ],
@@ -568,6 +659,8 @@ class TelegramBotService {
   getMainKeyboardAction(text, lang) {
     const msgs = this.getMsgs(lang);
     const actions = new Map([
+      [msgs.mainMenuButton, 'main_menu'],
+      [msgs.buyer, 'user_buyer'],
       [msgs.browseProperties, 'browse_properties'],
       [msgs.searchByLocation, 'search_location'],
       [msgs.postRequirement, 'post_requirement'],
@@ -580,10 +673,56 @@ class TelegramBotService {
     return actions.get(text.trim());
   }
 
+  async handleStartCommand(msg) {
+    const chatId = msg.chat.id;
+    const lang = await this.ensureUserContext(chatId, msg.from);
+
+    if (this.isUserOnboarded(chatId)) {
+      await this.showReturningWelcome(chatId, lang);
+      return;
+    }
+
+    await this.showLanguageSelection(chatId, lang, true);
+  }
+
+  async handleMenuCommand(msg) {
+    const chatId = msg.chat.id;
+    const lang = await this.ensureUserContext(chatId, msg.from);
+
+    if (!this.userLanguages.has(chatId)) {
+      await this.showLanguageSelection(chatId, lang, true);
+      return;
+    }
+
+    await this.showMainMenu(chatId, lang);
+  }
+
+  async requireOnboarded(chatId, lang) {
+    if (this.isUserOnboarded(chatId)) {
+      return true;
+    }
+    await this.showLanguageSelection(chatId, lang, true);
+    return false;
+  }
+
   async handleMainKeyboardAction(chatId, msg, action, lang) {
     const msgs = this.getMsgs(lang);
 
-    if (action === 'browse_properties') {
+    if (action === 'main_menu') {
+      this.userStates.delete(chatId);
+      this.tempPropertyData.delete(chatId);
+      if (this.isUserOnboarded(chatId)) {
+        await this.showReturningWelcome(chatId, lang);
+      } else if (this.userLanguages.has(chatId)) {
+        await this.showMainMenu(chatId, lang);
+      } else {
+        await this.showLanguageSelection(chatId, lang, true);
+      }
+    } else if (action === 'user_buyer') {
+      this.userStates.set(chatId, { userType: 'buyer', lang });
+      this.tempPropertyData.delete(chatId);
+      await this.startRequirementSubmission(chatId, lang);
+    } else if (action === 'browse_properties') {
       this.userStates.delete(chatId);
       this.tempPropertyData.delete(chatId);
       await this.showBrowseProperties(chatId, lang, 0);
@@ -675,22 +814,9 @@ class TelegramBotService {
   async showPostLanguageOnboarding(chatId, lang) {
     const msgs = this.getMsgs(lang);
 
-    await this.bot.sendMessage(chatId, msgs.benefits, {
+    await this.bot.sendMessage(chatId, `${msgs.benefits}\n\n${msgs.mainMenuPrompt}`, {
       parse_mode: 'Markdown',
       reply_markup: this.getMainReplyKeyboard(lang),
-    });
-
-    const keyboard = {
-      inline_keyboard: [
-        [
-          { text: msgs.buyer, callback_data: 'user_buyer' },
-          { text: msgs.seller, callback_data: 'user_seller' },
-        ],
-      ],
-    };
-
-    await this.bot.sendMessage(chatId, msgs.userTypeSelection, {
-      reply_markup: keyboard,
     });
   }
 
@@ -783,10 +909,8 @@ class TelegramBotService {
   }
 
   async showBuyerQuickActions(chatId, lang) {
-    const msgs = this.getMsgs(lang);
-    await this.bot.sendMessage(chatId, msgs.mainMenuPrompt, {
-      reply_markup: this.getMainReplyKeyboard(lang),
-    });
+    this.tempPropertyData.delete(chatId);
+    await this.startRequirementSubmission(chatId, lang);
   }
 
   // Channel posting methods for mobile app approvals
