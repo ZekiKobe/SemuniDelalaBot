@@ -185,6 +185,20 @@ class UnifiedListingModel {
     }
     return categoryLabel;
   }
+
+  /// Best image URL for list/card thumbnails (matches detail page image source).
+  String? get displayImageUrl {
+    if (images.isNotEmpty) {
+      final thumb = images.first.thumbnailUrl;
+      final url = images.first.url;
+      if (thumb != null && thumb.isNotEmpty) return thumb;
+      if (url.isNotEmpty) return url;
+    }
+    if (primaryImage != null && primaryImage!.isNotEmpty) {
+      return primaryImage;
+    }
+    return null;
+  }
 }
 
 class UnifiedListingImage {

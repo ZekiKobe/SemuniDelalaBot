@@ -187,7 +187,8 @@ class ModernListingCard extends ConsumerWidget {
   }
 
   Widget _buildImageSection(BuildContext context, WidgetRef ref, bool isFavorited) {
-    final hasImage = listing.primaryImage != null && listing.primaryImage!.isNotEmpty;
+    final imageUrl = listing.displayImageUrl;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
     
     return Stack(
       children: [
@@ -200,7 +201,7 @@ class ModernListingCard extends ConsumerWidget {
             aspectRatio: 16 / 9,
             child: hasImage
                 ? Image.network(
-                    listing.primaryImage!,
+                    imageUrl,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
@@ -218,8 +219,6 @@ class ModernListingCard extends ConsumerWidget {
                       );
                     },
                     errorBuilder: (context, error, stackTrace) {
-                      print('Error loading image: ${listing.primaryImage}');
-                      print('Error: $error');
                       return _buildPlaceholder();
                     },
                   )
