@@ -82,6 +82,7 @@ services:
     name: delala-api
     runtime: docker
     rootDir: backend
+    dockerfilePath: ./Dockerfile
     plan: starter
     region: frankfurt
     healthCheckPath: /api/v1/health
@@ -102,6 +103,7 @@ services:
     name: delala-bot
     runtime: docker
     rootDir: backend
+    dockerfilePath: ./Dockerfile
     plan: starter
     region: frankfurt
     dockerCommand: node start-bot.js
